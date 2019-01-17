@@ -4,14 +4,15 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
+	"github.com/ShyftNetwork/blockexplorer_ui/shyft_api/db"
 	_ "github.com/lib/pq"
 
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
 
-	"github.com/ShyftNetwork/go-empyrean/ethdb"
 	"github.com/gorilla/mux"
 )
 
@@ -19,7 +20,7 @@ import (
 func GetTransaction(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	txHash := vars["txHash"]
-	getTxResponse, err := ethdb.SGetTransaction(txHash)
+	getTxResponse, err := db.SGetTransaction(txHash)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -33,7 +34,7 @@ func GetTransaction(w http.ResponseWriter, r *http.Request) {
 
 // GetAllTransactions gets txs
 func GetAllTransactions(w http.ResponseWriter, r *http.Request) {
-	txs, err := ethdb.SGetAllTransactions()
+	txs, err := db.SGetAllTransactions()
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -50,7 +51,7 @@ func GetAllTransactions(w http.ResponseWriter, r *http.Request) {
 func GetAllTransactionsFromBlock(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	blockNumber := vars["blockNumber"]
-	txsFromBlock, err := ethdb.SGetAllTransactionsFromBlock(blockNumber)
+	txsFromBlock, err := db.SGetAllTransactionsFromBlock(blockNumber)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -67,7 +68,7 @@ func GetAllBlocksMinedByAddress(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	coinbase := vars["coinbase"]
 
-	blocksMined, err := ethdb.SGetAllBlocksMinedByAddress(coinbase)
+	blocksMined, err := db.SGetAllBlocksMinedByAddress(coinbase)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -85,7 +86,7 @@ func GetAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	address := vars["address"]
 
-	getAccountBalance, err := ethdb.SGetAccount(address)
+	getAccountBalance, err := db.SGetAccount(address)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -103,7 +104,7 @@ func GetAccountTxs(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	address := vars["address"]
 
-	getAccountTxs, err := ethdb.SGetAccountTxs(address)
+	getAccountTxs, err := db.SGetAccountTxs(address)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -118,7 +119,7 @@ func GetAccountTxs(w http.ResponseWriter, r *http.Request) {
 
 // GetAllAccounts gets balances
 func GetAllAccounts(w http.ResponseWriter, r *http.Request) {
-	allAccounts, err := ethdb.SGetAllAccounts()
+	allAccounts, err := db.SGetAllAccounts()
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -134,7 +135,7 @@ func GetBlock(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	blockNumber := vars["blockNumber"]
 
-	getBlockResponse, err := ethdb.SGetBlock(blockNumber)
+	getBlockResponse, err := db.SGetBlock(blockNumber)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -149,7 +150,7 @@ func GetBlock(w http.ResponseWriter, r *http.Request) {
 
 // GetAllBlocks response
 func GetAllBlocksWithoutLimit(w http.ResponseWriter, r *http.Request) {
-	blocks, err := ethdb.SGetAllBlocksWithoutLimit()
+	blocks, err := db.SGetAllBlocksWithoutLimit()
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -160,8 +161,8 @@ func GetAllBlocksWithoutLimit(w http.ResponseWriter, r *http.Request) {
 }
 
 // Count all rows in Blocks Table
-func GetAllBlocksLength(w http.ResponseWriter, r *http.Request) {
-	count, err := ethdb.GetAllBlocksLength()
+func SGetAllBlocksLength(w http.ResponseWriter, r *http.Request) {
+	count, err := db.GetAllBlocksLength()
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -173,10 +174,12 @@ func GetAllBlocksLength(w http.ResponseWriter, r *http.Request) {
 
 func GetAllBlocks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	limit := vars["limit"]
-	offset := vars["offset"]
+	currentPage := vars["currentPage"]
+	pageLimit := vars["pageLimit"]
+	page, err := strconv.ParseInt(currentPage, 10, 64)
+	limit, err := strconv.ParseInt(pageLimit, 10, 64)
 
-	blocks, err := ethdb.SGetAllBlocks(limit, offset)
+	blocks, err := db.SGetAllBlocks(page, limit)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -187,7 +190,7 @@ func GetAllBlocks(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetRecentBlock(w http.ResponseWriter, r *http.Request) {
-	mostRecentBlock, err := ethdb.SGetRecentBlock()
+	mostRecentBlock, err := db.SGetRecentBlock()
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -203,7 +206,7 @@ func GetInternalTransactionsByHash(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	txHash := vars["txHash"]
 
-	internalTxs, err := ethdb.SGetInternalTransaction(txHash)
+	internalTxs, err := db.SGetInternalTransaction(txHash)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -217,7 +220,7 @@ func GetInternalTransactionsByHash(w http.ResponseWriter, r *http.Request) {
 
 //GetInternalTransactionsHash gets internal txs hash
 func GetInternalTransactions(w http.ResponseWriter, r *http.Request) {
-	internalTxs, err := ethdb.SGetAllInternalTransactions()
+	internalTxs, err := db.SGetAllInternalTransactions()
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return

@@ -1,4 +1,4 @@
-package main
+package types
 
 import "time"
 
@@ -95,3 +95,14 @@ type SendAndReceive struct {
 	AccountNonce uint64 `json:",string"`
 }
 
+// AccountBlock - struct for reading and writing database data
+type AccountBlock struct {
+	Acct      string `db:"acct"`
+	Blockhash string `db:"blockhash"`
+	Delta     int64  `db:"delta"`
+	TxCount   int64  `db:"txcount"`
+}
+
+type AccountBlockArray struct {
+	AccountBlocks []AccountBlock
+}

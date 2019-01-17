@@ -1,4 +1,4 @@
-package main
+package logger
 
 //@ NOTE Shyft logs responses in terminal
 import (

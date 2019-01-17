@@ -1,4 +1,4 @@
-package main
+package db
 
 import (
 	"database/sql"
@@ -6,20 +6,19 @@ import (
 	"fmt"
 	"time"
 
-
-	"github.com/ShyftNetwork/go-empyrean/ethdb"
+	"github.com/ShyftNetwork/blockexplorer_ui/shyft_api/types"
 )
 
 func SGetAllBlocksWithoutLimit() (string, error) {
-	db, err := ethdb.ReturnShyftDatabase()
+	db, err := ReturnShyftDatabase()
 	if err != nil {
 		fmt.Println("err")
 		return "", err
 	}
-	var arr BlockRes
+	var arr types.BlockRes
 	var blockArr string
 
-	rows, err := db.db.Queryx(`SELECT * FROM blocks ORDER BY number ASC`)
+	rows, err := db.Db.Queryx(`SELECT * FROM blocks ORDER BY number ASC`)
 	if err != nil {
 		fmt.Println("err", err)
 		return "", err
@@ -35,7 +34,7 @@ func SGetAllBlocksWithoutLimit() (string, error) {
 		err = rows.Scan(
 			&hash, &coinbase, &gasUsed, &gasLimit, &txCount, &uncleCount, &age, &parentHash, &uncleHash, &difficulty, &size, &nonce, &rewards, &num)
 
-		arr.Blocks = append(arr.Blocks, SBlock{
+		arr.Blocks = append(arr.Blocks, types.SBlock{
 			Hash:       hash,
 			Coinbase:   coinbase,
 			GasUsed:    gasUsed,
@@ -68,8 +67,8 @@ func GetAllBlocksLength() (int, error) {
 		return 0, err
 	}
 	sqlStatement := `SELECT COUNT(*) FROM blocks`
-	tx, _ := db.db.Begin()
-	row := db.db.QueryRow(sqlStatement)
+	tx, _ := db.Db.Begin()
+	row := db.Db.QueryRow(sqlStatement)
 	tx.Commit()
 
 	var count int
@@ -79,16 +78,18 @@ func GetAllBlocksLength() (int, error) {
 	return count, nil
 }
 
-func SGetAllBlocks(limit string, offset string) (string, error) {
+func SGetAllBlocks(currentPage int64, pageLimit int64) (string, error) {
 	db, err := ReturnShyftDatabase()
 	if err != nil {
 		fmt.Println("err")
 		return "", err
 	}
-	var arr BlockRes
+
+	var offset = (currentPage - 1) * pageLimit
+	var arr types.BlockRes
 	var blockArr string
 	sqlStatement := `SELECT * FROM blocks ORDER BY number ASC LIMIT $1 OFFSET $2`
-	rows, err := db.db.Queryx(sqlStatement, limit, offset)
+	rows, err := db.Db.Queryx(sqlStatement, pageLimit, offset)
 	if err != nil {
 		fmt.Println("err", err)
 		return "", err
@@ -104,7 +105,7 @@ func SGetAllBlocks(limit string, offset string) (string, error) {
 		err = rows.Scan(
 			&hash, &coinbase, &gasUsed, &gasLimit, &txCount, &uncleCount, &age, &parentHash, &uncleHash, &difficulty, &size, &nonce, &rewards, &num)
 
-		arr.Blocks = append(arr.Blocks, SBlock{
+		arr.Blocks = append(arr.Blocks, types.SBlock{
 			Hash:       hash,
 			Coinbase:   coinbase,
 			GasUsed:    gasUsed,
@@ -137,8 +138,8 @@ func SGetBlock(blockNumber string) (string, error) {
 		return "", err
 	}
 	sqlStatement := `SELECT * FROM blocks WHERE number=$1;`
-	tx, _ := db.db.Begin()
-	row := db.db.QueryRow(sqlStatement, blockNumber)
+	tx, _ := db.Db.Begin()
+	row := db.Db.QueryRow(sqlStatement, blockNumber)
 	tx.Commit()
 	var hash, coinbase, parentHash, uncleHash, difficulty, size, rewards, num string
 	var gasUsed, gasLimit, nonce uint64
@@ -148,7 +149,7 @@ func SGetBlock(blockNumber string) (string, error) {
 	row.Scan(
 		&hash, &coinbase, &gasUsed, &gasLimit, &txCount, &uncleCount, &age, &parentHash, &uncleHash, &difficulty, &size, &nonce, &rewards, &num)
 
-	block := SBlock{
+	block := types.SBlock{
 		Hash:       hash,
 		Coinbase:   coinbase,
 		GasUsed:    gasUsed,
@@ -175,8 +176,8 @@ func SGetRecentBlock() (string, error) {
 		return "", err
 	}
 	sqlStatement := `SELECT * FROM blocks WHERE number=(SELECT MAX(number) FROM blocks);`
-	tx, _ := db.db.Begin()
-	row := db.db.QueryRow(sqlStatement)
+	tx, _ := db.Db.Begin()
+	row := db.Db.QueryRow(sqlStatement)
 	tx.Commit()
 	var hash, coinbase, parentHash, uncleHash, difficulty, size, rewards, num string
 	var gasUsed, gasLimit, nonce uint64
@@ -186,7 +187,7 @@ func SGetRecentBlock() (string, error) {
 	row.Scan(
 		&hash, &coinbase, &gasUsed, &gasLimit, &txCount, &uncleCount, &age, &parentHash, &uncleHash, &difficulty, &size, &nonce, &rewards, &num)
 
-	block := SBlock{
+	block := types.SBlock{
 		Hash:       hash,
 		Coinbase:   coinbase,
 		GasUsed:    gasUsed,
@@ -230,11 +231,11 @@ func SGetAllTransactionsFromBlock(blockNumber string) (string, error) {
 		fmt.Println(err)
 		return "", err
 	}
-	var arr TxRes
+	var arr types.TxRes
 	var txx string
 	sqlStatement := `SELECT * FROM txs WHERE blocknumber=$1`
-	tx, _ := db.db.Begin()
-	rows, err := db.db.Query(sqlStatement, blockNumber)
+	tx, _ := db.Db.Begin()
+	rows, err := db.Db.Query(sqlStatement, blockNumber)
 	tx.Commit()
 	if err != nil {
 		fmt.Println("err")
@@ -251,7 +252,7 @@ func SGetAllTransactionsFromBlock(blockNumber string) (string, error) {
 			&txhash, &to_addr, &from_addr, &blockhash, &blocknumber, &amount, &gasprice, &gas, &gasLimit, &txfee, &nonce, &status, &isContract, &age, &data,
 		)
 
-		arr.TxEntry = append(arr.TxEntry, ShyftTxEntryPretty{
+		arr.TxEntry = append(arr.TxEntry, types.ShyftTxEntryPretty{
 			TxHash:      txhash,
 			To:          to_addr,
 			From:        from_addr,
@@ -282,11 +283,11 @@ func SGetAllBlocksMinedByAddress(coinbase string) (string, error) {
 		fmt.Println(err)
 		return "", nil
 	}
-	var arr BlockRes
+	var arr types.BlockRes
 	var blockArr string
 	sqlStatement := `SELECT * FROM blocks WHERE coinbase=$1`
-	tx, _ := db.db.Begin()
-	rows, err := db.db.Query(sqlStatement, coinbase)
+	tx, _ := db.Db.Begin()
+	rows, err := db.Db.Query(sqlStatement, coinbase)
 	tx.Commit()
 	if err != nil {
 		fmt.Println("err")
@@ -302,7 +303,7 @@ func SGetAllBlocksMinedByAddress(coinbase string) (string, error) {
 		err = rows.Scan(
 			&hash, &coinbase, &gasUsed, &gasLimit, &txCount, &uncleCount, &age, &parentHash, &uncleHash, &difficulty, &size, &nonce, &rewards, &num)
 
-		arr.Blocks = append(arr.Blocks, SBlock{
+		arr.Blocks = append(arr.Blocks, types.SBlock{
 			Hash:       hash,
 			Coinbase:   coinbase,
 			GasUsed:    gasUsed,
@@ -333,10 +334,10 @@ func SGetAllTransactions() (string, error) {
 		fmt.Println(err)
 		return "", err
 	}
-	var arr TxRes
+	var arr types.TxRes
 	var txx string
-	tx, _ := db.db.Begin()
-	rows, err := db.db.Query(`SELECT * FROM txs`)
+	tx, _ := db.Db.Begin()
+	rows, err := db.Db.Query(`SELECT * FROM txs`)
 	tx.Commit()
 	if err != nil {
 		fmt.Println("err")
@@ -353,7 +354,7 @@ func SGetAllTransactions() (string, error) {
 			&txhash, &to_addr, &from_addr, &blockhash, &blocknumber, &amount, &gasprice, &gas, &gasLimit, &txfee, &nonce, &status, &isContract, &age, &data,
 		)
 
-		arr.TxEntry = append(arr.TxEntry, ShyftTxEntryPretty{
+		arr.TxEntry = append(arr.TxEntry, types.ShyftTxEntryPretty{
 			TxHash:      txhash,
 			To:          to_addr,
 			From:        from_addr,
@@ -386,8 +387,8 @@ func SGetTransaction(txHash string) (string, error) {
 		return "", err
 	}
 	sqlStatement := `SELECT * FROM txs WHERE txhash=$1;`
-	tx, _ := db.db.Begin()
-	row := db.db.QueryRow(sqlStatement, txHash)
+	tx, _ := db.Db.Begin()
+	row := db.Db.QueryRow(sqlStatement, txHash)
 	tx.Commit()
 	var txhash, to_addr, from_addr, txfee, blockhash, blocknumber, amount, status string
 	var gasprice, gas, gasLimit, nonce uint64
@@ -398,7 +399,7 @@ func SGetTransaction(txHash string) (string, error) {
 	row.Scan(
 		&txhash, &to_addr, &from_addr, &blockhash, &blocknumber, &amount, &gasprice, &gas, &gasLimit, &txfee, &nonce, &status, &isContract, &age, &data)
 
-	txData := ShyftTxEntryPretty{
+	txData := types.ShyftTxEntryPretty{
 		TxHash:      txhash,
 		To:          to_addr,
 		From:        from_addr,
@@ -427,10 +428,10 @@ func SGetAllAccounts() (string, error) {
 		fmt.Println(err)
 		return "", err
 	}
-	var array AccountRes
+	var array types.AccountRes
 	var accountsArr, nonce string
-	tx, _ := db.db.Begin()
-	accs, err := db.db.Query(`
+	tx, _ := db.Db.Begin()
+	accs, err := db.Db.Query(`
 		SELECT
 			addr,
 			balance,
@@ -449,7 +450,7 @@ func SGetAllAccounts() (string, error) {
 			&addr, &balance, &nonce,
 		)
 
-		array.AllAccounts = append(array.AllAccounts, SAccounts{
+		array.AllAccounts = append(array.AllAccounts, types.SAccounts{
 			Addr:         addr,
 			Balance:      balance,
 			AccountNonce: nonce,
@@ -462,16 +463,16 @@ func SGetAllAccounts() (string, error) {
 	return accountsArr, nil
 }
 
-func InnerSGetAccount(db *SPGDatabase, address string) (SAccounts, bool) {
+func InnerSGetAccount(db *SPGDatabase, address string) (types.SAccounts, bool) {
 	sqlStatement := `SELECT * FROM accounts WHERE addr=$1;`
 	var addr, balance, nonce string
-	tx, _ := db.db.Begin()
-	err := db.db.QueryRow(sqlStatement, address).Scan(&addr, &balance, &nonce)
+	tx, _ := db.Db.Begin()
+	err := db.Db.QueryRow(sqlStatement, address).Scan(&addr, &balance, &nonce)
 	tx.Commit()
 	if err == sql.ErrNoRows {
-		return SAccounts{}, false
+		return types.SAccounts{}, false
 	} else {
-		account := SAccounts{
+		account := types.SAccounts{
 			Addr:         addr,
 			Balance:      balance,
 			AccountNonce: nonce,
@@ -499,11 +500,11 @@ func SGetAccountTxs(address string) (string, error) {
 		fmt.Println(err)
 		return "", err
 	}
-	var arr TxRes
+	var arr types.TxRes
 	var txx string
 	sqlStatement := `SELECT * FROM txs WHERE to_addr=$1 OR from_addr=$1;`
-	tx, _ := db.db.Begin()
-	rows, err := db.db.Query(sqlStatement, address)
+	tx, _ := db.Db.Begin()
+	rows, err := db.Db.Query(sqlStatement, address)
 	tx.Commit()
 	if err != nil {
 		fmt.Println("err", err)
@@ -520,7 +521,7 @@ func SGetAccountTxs(address string) (string, error) {
 			&txhash, &to_addr, &from_addr, &blockhash, &blocknumber, &amount, &gasprice, &gas, &gasLimit, &txfee, &nonce, &status, &isContract, &age, &data,
 		)
 
-		arr.TxEntry = append(arr.TxEntry, ShyftTxEntryPretty{
+		arr.TxEntry = append(arr.TxEntry, types.ShyftTxEntryPretty{
 			TxHash:      txhash,
 			To:          to_addr,
 			From:        from_addr,
@@ -552,10 +553,10 @@ func SGetAllInternalTransactions() (string, error) {
 		fmt.Println(err)
 		return "", err
 	}
-	var arr InternalArray
+	var arr types.InternalArray
 	var internaltx string
-	tx, _ := db.db.Begin()
-	rows, err := db.db.Query(`SELECT * FROM internaltxs`)
+	tx, _ := db.Db.Begin()
+	rows, err := db.Db.Query(`SELECT * FROM internaltxs`)
 	tx.Commit()
 	if err != nil {
 		fmt.Println("err")
@@ -571,7 +572,7 @@ func SGetAllInternalTransactions() (string, error) {
 			&id, &txhash, &blockhash, &action, &to_addr, &from_addr, &amount, &gas, &gasUsed, &age, &input, &output,
 		)
 
-		arr.InternalEntry = append(arr.InternalEntry, InteralWrite{
+		arr.InternalEntry = append(arr.InternalEntry, types.InteralWrite{
 			ID:        id,
 			Hash:      txhash,
 			BlockHash: blockhash,
@@ -600,12 +601,12 @@ func SGetInternalTransaction(txHash string) (string, error) {
 		fmt.Println(err)
 		return "", nil
 	}
-	var arr InternalArray
+	var arr types.InternalArray
 	var internaltx string
 
 	sqlStatement := `SELECT * FROM internaltxs WHERE txhash=$1;`
-	tx, _ := db.db.Begin()
-	rows, err := db.db.Query(sqlStatement, txHash)
+	tx, _ := db.Db.Begin()
+	rows, err := db.Db.Query(sqlStatement, txHash)
 	tx.Commit()
 	if err != nil {
 		fmt.Println("err")
@@ -622,7 +623,7 @@ func SGetInternalTransaction(txHash string) (string, error) {
 			&id, &txhash, &blockhash, &action, &to_addr, &from_addr, &amount, &gas, &gasUsed, &age, &input, &output,
 		)
 
-		arr.InternalEntry = append(arr.InternalEntry, InteralWrite{
+		arr.InternalEntry = append(arr.InternalEntry, types.InteralWrite{
 			ID:        id,
 			Hash:      txhash,
 			BlockHash: blockhash,
@@ -650,10 +651,10 @@ func SGetAllAccountBlocks() (string, error) {
 		fmt.Println(err)
 		return "", err
 	}
-	var arr AccountBlockArray
+	var arr types.AccountBlockArray
 	var accountBlockJSON string
-	tx, _ := db.db.Begin()
-	rows, err := db.db.Query(`SELECT * FROM accountblocks`)
+	tx, _ := db.Db.Begin()
+	rows, err := db.Db.Query(`SELECT * FROM accountblocks`)
 	tx.Commit()
 	if err != nil {
 		fmt.Println("err")
@@ -667,7 +668,7 @@ func SGetAllAccountBlocks() (string, error) {
 			&acct, &blockhash, &delta, &txCount,
 		)
 
-		arr.AccountBlocks = append(arr.AccountBlocks, AccountBlock{
+		arr.AccountBlocks = append(arr.AccountBlocks, types.AccountBlock{
 			Acct:      acct,
 			Blockhash: blockhash,
 			Delta:     delta,

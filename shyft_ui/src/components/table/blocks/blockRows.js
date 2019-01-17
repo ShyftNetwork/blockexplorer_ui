@@ -18,12 +18,12 @@ class BlocksTable extends Component {
 
     async componentDidMount() {
         let pageLimit= 25;
-        let offset = 0;
+        let currentPage = 1;
         try {
             const response = await axios.get(`${API_URL}/get_all_blocks_length`);
             await this.setState({totalRecords: response.data});
             try {
-                const response = await axios.get(`${API_URL}/get_all_blocks/${pageLimit}/${offset}`);
+                const response = await axios.get(`${API_URL}/get_all_blocks/${currentPage}/${pageLimit}`);
                 if(response.data === "\n") {
                     this.setState({emptyDataSet: true})
                 } else {
@@ -44,7 +44,7 @@ class BlocksTable extends Component {
         const offset = (currentPage - 1) * pageLimit;
 
         try {
-            const response = await axios.get(`${API_URL}/get_all_blocks/${pageLimit}/${offset}`);
+            const response = await axios.get(`${API_URL}/get_all_blocks/${currentPage}/${pageLimit}`);
             if(response.data === "\n") {
                 this.setState({emptyDataSet: true})
             } else {

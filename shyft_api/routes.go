@@ -42,14 +42,14 @@ var routes = Routes{
 	Route{
 		"GetAllBlocks",
 		"GET",
-		"/api/get_all_blocks/{limit}/{offset}",
+		"/api/get_all_blocks/{currentPage}/{pageLimit}",
 		GetAllBlocks,
 	},
 	Route{
 		"GetAllBlocksLength",
 		"GET",
 		"/api/get_all_blocks_length",
-		GetAllBlocksLength,
+		SGetAllBlocksLength,
 	},
 	Route{
 		"GetBlock",

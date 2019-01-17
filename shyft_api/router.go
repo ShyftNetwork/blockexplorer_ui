@@ -4,6 +4,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/ShyftNetwork/blockexplorer_ui/shyft_api/logger"
 	"github.com/gorilla/mux"
 )
 
@@ -14,7 +15,7 @@ func NewRouter() *mux.Router {
 	for _, route := range routes {
 
 		var handler http.Handler = route.HandlerFunc
-		handler = Logger(handler, route.Name)
+		handler = logger.Logger(handler, route.Name)
 
 		router.
 			Methods(route.Method).
