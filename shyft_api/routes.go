@@ -58,9 +58,21 @@ var routes = Routes{
 		GetBlock,
 	},
 	Route{
+		"GetAllTransactionsWithoutLimit",
+		"GET",
+		"/api/get_all_transactions_nolimit",
+		GetAllTransactionsWithoutLimit,
+	},
+	Route{
+		"GetAllTransactionsLength",
+		"GET",
+		"/api/get_all_transactions_length",
+		SGetAllTransactionsLength,
+	},
+	Route{
 		"GetAllTransactions",
 		"GET",
-		"/api/get_all_transactions",
+		"/api/get_all_transactions/{currentPage}/{pageLimit}",
 		GetAllTransactions,
 	},
 	Route{
@@ -69,18 +81,18 @@ var routes = Routes{
 		"/api/get_transaction/{txHash}",
 		GetTransaction,
 	},
-	Route{
-		Name:        "GetRecentBlock",
-		Method:      "GET",
-		Pattern:     "/api/get_recent_block",
-		HandlerFunc: GetRecentBlock,
-	},
-	Route{
-		Name:        "GetAllTransactionsFromBlock",
-		Method:      "GET",
-		Pattern:     "/api/get_all_transactions_from_block/{blockNumber}",
-		HandlerFunc: GetAllTransactionsFromBlock,
-	},
+	// Route{
+	// 	Name:        "GetRecentBlock",
+	// 	Method:      "GET",
+	// 	Pattern:     "/api/get_recent_block",
+	// 	HandlerFunc: GetRecentBlock,
+	// },
+	// Route{
+	// 	Name:        "GetAllTransactionsFromBlock",
+	// 	Method:      "GET",
+	// 	Pattern:     "/api/get_all_transactions_from_block/{blockNumber}",
+	// 	HandlerFunc: GetAllTransactionsFromBlock,
+	// },
 	Route{
 		Name:        "GetAllBlocksMinedByAddress",
 		Method:      "GET",

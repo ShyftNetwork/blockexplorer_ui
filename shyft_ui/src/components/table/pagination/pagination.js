@@ -41,9 +41,9 @@ class Pagination extends Component {
         this.state = { currentPage: 1 };
     }
 
-    componentDidMount() {
-        this.gotoPage(1);
-    }
+    // componentDidMount() {
+    //     this.gotoPage(1);
+    // }
 
     gotoPage = page => {
         const { onPageChanged = f => f } = this.props;

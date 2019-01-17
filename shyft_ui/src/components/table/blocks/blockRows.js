@@ -23,6 +23,7 @@ class BlocksTable extends Component {
             const response = await axios.get(`${API_URL}/get_all_blocks_length`);
             await this.setState({totalRecords: response.data});
             try {
+                console.log("CALLED TWICE?")
                 const response = await axios.get(`${API_URL}/get_all_blocks/${currentPage}/${pageLimit}`);
                 if(response.data === "\n") {
                     this.setState({emptyDataSet: true})
@@ -39,6 +40,7 @@ class BlocksTable extends Component {
     }
 
     onPageChanged = async(data) => {
+        console.log("THAN?")
         const { currentPage, totalPages, pageLimit } = data;
 
         const offset = (currentPage - 1) * pageLimit;
