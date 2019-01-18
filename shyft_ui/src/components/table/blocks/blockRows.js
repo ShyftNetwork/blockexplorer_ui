@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import BlockTable from './blockTable';
 import ErrorMessage from './errorMessage';
+import Loading from '../../UI materials/loading'
 import Pagination from '../pagination/pagination';
 import classes from './table.css';
 import axios from "axios/index";
@@ -40,8 +41,6 @@ class BlocksTable extends Component {
 
     onPageChanged = async(data) => {
         const { currentPage, totalPages, pageLimit } = data;
-
-        const offset = (currentPage - 1) * pageLimit;
 
         try {
             const response = await axios.get(`${API_URL}/get_all_blocks/${currentPage}/${pageLimit}`);
@@ -104,7 +103,7 @@ class BlocksTable extends Component {
                                     <Pagination totalRecords={this.state.totalRecords} pageLimit={25} pageNeighbours={1} onPageChanged={this.onPageChanged} />
                                 </div>
                             </table>
-                    : <ErrorMessage />
+                    : <Loading>Blocks</Loading>
                 }
             </div>
         );

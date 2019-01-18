@@ -4,463 +4,128 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/ShyftNetwork/blockexplorer_ui/shyft_api/types"
 )
 
+//SGetAllBlocksWithoutLimit returns all blocks in database; data dump
 func SGetAllBlocksWithoutLimit() (string, error) {
-	db, err := ReturnShyftDatabase()
-	if err != nil {
-		fmt.Println("err")
-		return "", err
-	}
-	var arr types.BlockRes
-	var blockArr string
+	db := ConnectShyftDatabase()
 
-	rows, err := db.Db.Queryx(`SELECT * FROM blocks ORDER BY number ASC`)
+	blocks, err := BlockArrayQueries(db, GetAllBlocksNoLimit, 0, 0, "")
 	if err != nil {
 		fmt.Println("err", err)
 		return "", err
 	}
-	defer rows.Close()
+	stringifyBlocks := string(blocks)
 
-	for rows.Next() {
-		var hash, coinbase, parentHash, uncleHash, difficulty, size, rewards, num string
-		var gasUsed, gasLimit, nonce uint64
-		var txCount, uncleCount int
-		var age time.Time
-
-		err = rows.Scan(
-			&hash, &coinbase, &gasUsed, &gasLimit, &txCount, &uncleCount, &age, &parentHash, &uncleHash, &difficulty, &size, &nonce, &rewards, &num)
-
-		arr.Blocks = append(arr.Blocks, types.SBlock{
-			Hash:       hash,
-			Coinbase:   coinbase,
-			GasUsed:    gasUsed,
-			GasLimit:   gasLimit,
-			TxCount:    txCount,
-			UncleCount: uncleCount,
-			Age:        age,
-			ParentHash: parentHash,
-			UncleHash:  uncleHash,
-			Difficulty: difficulty,
-			Size:       size,
-			Nonce:      nonce,
-			Rewards:    rewards,
-			Number:     num,
-		})
-
-		blocks, _ := json.Marshal(arr.Blocks)
-		blocksFmt := string(blocks)
-		blockArr = blocksFmt
-	}
-	return blockArr, nil
+	return stringifyBlocks, nil
 }
 
 // GetAllBlocksLength returns number of records in blocks table
 // This tells the client-UI how many pages to show for pagination
 func GetAllBlocksLength() (int, error) {
-	db, err := ReturnShyftDatabase()
-	if err != nil {
-		fmt.Println("err")
-		return 0, err
-	}
-	sqlStatement := `SELECT COUNT(*) FROM blocks`
-	tx, _ := db.Db.Begin()
-	row := db.Db.QueryRow(sqlStatement)
-	tx.Commit()
-
-	var count int
-	row.Scan(
-		&count)
+	db := ConnectShyftDatabase()
+	count := RecordCountQuery(db, GetBlockCount)
 
 	return count, nil
 }
 
 func SGetAllBlocks(currentPage int64, pageLimit int64) (string, error) {
-	db, err := ReturnShyftDatabase()
-	if err != nil {
-		fmt.Println("err")
-		return "", err
-	}
+	db := ConnectShyftDatabase()
 
-	var offset = (currentPage - 1) * pageLimit
-	var arr types.BlockRes
-	var blockArr string
-	sqlStatement := `SELECT * FROM blocks ORDER BY number ASC LIMIT $1 OFFSET $2`
-	rows, err := db.Db.Queryx(sqlStatement, pageLimit, offset)
+	blocks, err := BlockArrayQueries(db, GetAllBlocks, currentPage, pageLimit, "")
 	if err != nil {
 		fmt.Println("err", err)
 		return "", err
 	}
-	defer rows.Close()
+	stringifyBlocks := string(blocks)
 
-	for rows.Next() {
-		var hash, coinbase, parentHash, uncleHash, difficulty, size, rewards, num string
-		var gasUsed, gasLimit, nonce uint64
-		var txCount, uncleCount int
-		var age time.Time
-
-		err = rows.Scan(
-			&hash, &coinbase, &gasUsed, &gasLimit, &txCount, &uncleCount, &age, &parentHash, &uncleHash, &difficulty, &size, &nonce, &rewards, &num)
-
-		arr.Blocks = append(arr.Blocks, types.SBlock{
-			Hash:       hash,
-			Coinbase:   coinbase,
-			GasUsed:    gasUsed,
-			GasLimit:   gasLimit,
-			TxCount:    txCount,
-			UncleCount: uncleCount,
-			Age:        age,
-			ParentHash: parentHash,
-			UncleHash:  uncleHash,
-			Difficulty: difficulty,
-			Size:       size,
-			Nonce:      nonce,
-			Rewards:    rewards,
-			Number:     num,
-		})
-
-		blocks, _ := json.Marshal(arr.Blocks)
-		blocksFmt := string(blocks)
-		blockArr = blocksFmt
-	}
-	return blockArr, nil
+	return stringifyBlocks, nil
 }
 
-//GetBlock queries to send single block info
+//SGetBlock queries to send single block info
 //TODO provide blockHash arg passed from handler.go
 func SGetBlock(blockNumber string) (string, error) {
-	db, err := ReturnShyftDatabase()
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-	sqlStatement := `SELECT * FROM blocks WHERE number=$1;`
-	tx, _ := db.Db.Begin()
-	row := db.Db.QueryRow(sqlStatement, blockNumber)
-	tx.Commit()
-	var hash, coinbase, parentHash, uncleHash, difficulty, size, rewards, num string
-	var gasUsed, gasLimit, nonce uint64
-	var txCount, uncleCount int
-	var age time.Time
+	db := ConnectShyftDatabase()
+	block, _ := BlockQueries(db, GetBlock, blockNumber)
 
-	row.Scan(
-		&hash, &coinbase, &gasUsed, &gasLimit, &txCount, &uncleCount, &age, &parentHash, &uncleHash, &difficulty, &size, &nonce, &rewards, &num)
-
-	block := types.SBlock{
-		Hash:       hash,
-		Coinbase:   coinbase,
-		GasUsed:    gasUsed,
-		GasLimit:   gasLimit,
-		TxCount:    txCount,
-		UncleCount: uncleCount,
-		Age:        age,
-		ParentHash: parentHash,
-		UncleHash:  uncleHash,
-		Difficulty: difficulty,
-		Size:       size,
-		Nonce:      nonce,
-		Rewards:    rewards,
-		Number:     num,
-	}
-	json, _ := json.Marshal(block)
-	return string(json), nil
+	return string(block), nil
 }
 
+//SGetRecentBlock Returns recent block height
 func SGetRecentBlock() (string, error) {
-	db, err := ReturnShyftDatabase()
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-	sqlStatement := `SELECT * FROM blocks WHERE number=(SELECT MAX(number) FROM blocks);`
-	tx, _ := db.Db.Begin()
-	row := db.Db.QueryRow(sqlStatement)
-	tx.Commit()
-	var hash, coinbase, parentHash, uncleHash, difficulty, size, rewards, num string
-	var gasUsed, gasLimit, nonce uint64
-	var txCount, uncleCount int
-	var age time.Time
+	db := ConnectShyftDatabase()
 
-	row.Scan(
-		&hash, &coinbase, &gasUsed, &gasLimit, &txCount, &uncleCount, &age, &parentHash, &uncleHash, &difficulty, &size, &nonce, &rewards, &num)
+	block, _ := BlockQueries(db, GetBlock, "")
 
-	block := types.SBlock{
-		Hash:       hash,
-		Coinbase:   coinbase,
-		GasUsed:    gasUsed,
-		GasLimit:   gasLimit,
-		TxCount:    txCount,
-		UncleCount: uncleCount,
-		Age:        age,
-		ParentHash: parentHash,
-		UncleHash:  uncleHash,
-		Difficulty: difficulty,
-		Size:       size,
-		Nonce:      nonce,
-		Rewards:    rewards,
-		Number:     num,
-	}
-	json, _ := json.Marshal(block)
-	return string(json), nil
+	return string(block), nil
 }
 
-//func SGetRecentBlockHash() string {
-//	sqldb, _ := DBConnection()
-//	sqlStatement := `SELECT hash FROM blocks WHERE number=(SELECT MAX(number) FROM blocks);`
-//	tx, _ := sqldb.Begin()
-//	row := sqldb.QueryRow(sqlStatement)
-//	tx.Commit()
-//	var hash string
-//
-//	row.Scan(
-//		&hash)
-//
-//	blockhash := stypes.BlockHash{
-//		Hash: hash,
-//	}
-//	json, _ := json.Marshal(blockhash)
-//	return string(json)
-//}
+// GetAllTransactionsLength returns number of records in blocks table
+// This tells the client-UI how many pages to show for pagination
+func GetAllTransactionsLength() (int, error) {
+	db := ConnectShyftDatabase()
 
-func SGetAllTransactionsFromBlock(blockNumber string) (string, error) {
-	db, err := ReturnShyftDatabase()
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-	var arr types.TxRes
-	var txx string
-	sqlStatement := `SELECT * FROM txs WHERE blocknumber=$1`
-	tx, _ := db.Db.Begin()
-	rows, err := db.Db.Query(sqlStatement, blockNumber)
-	tx.Commit()
-	if err != nil {
-		fmt.Println("err")
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var txhash, to_addr, from_addr, txfee, blockhash, blocknumber, amount, status string
-		var gasprice, gas, gasLimit, nonce uint64
-		var isContract bool
-		var age time.Time
-		var data []byte
+	count := RecordCountQuery(db, GetTransactionCount)
 
-		err = rows.Scan(
-			&txhash, &to_addr, &from_addr, &blockhash, &blocknumber, &amount, &gasprice, &gas, &gasLimit, &txfee, &nonce, &status, &isContract, &age, &data,
-		)
-
-		arr.TxEntry = append(arr.TxEntry, types.ShyftTxEntryPretty{
-			TxHash:      txhash,
-			To:          to_addr,
-			From:        from_addr,
-			BlockHash:   blockhash,
-			BlockNumber: blocknumber,
-			Amount:      amount,
-			GasPrice:    gasprice,
-			Gas:         gas,
-			GasLimit:    gasLimit,
-			Cost:        txfee,
-			Nonce:       nonce,
-			Status:      status,
-			IsContract:  isContract,
-			Age:         age,
-			Data:        data,
-		})
-
-		txData, _ := json.Marshal(arr.TxEntry)
-		newtx := string(txData)
-		txx = newtx
-	}
-	return txx, nil
+	return count, nil
 }
 
-func SGetAllBlocksMinedByAddress(coinbase string) (string, error) {
-	db, err := ReturnShyftDatabase()
-	if err != nil {
-		fmt.Println(err)
-		return "", nil
-	}
-	var arr types.BlockRes
-	var blockArr string
-	sqlStatement := `SELECT * FROM blocks WHERE coinbase=$1`
-	tx, _ := db.Db.Begin()
-	rows, err := db.Db.Query(sqlStatement, coinbase)
-	tx.Commit()
-	if err != nil {
-		fmt.Println("err")
-	}
-	defer rows.Close()
+func SGetAllTransactionsFromBlock(currentPage int64, pageLimit int64, blockNumber string) string {
+	db := ConnectShyftDatabase()
 
-	for rows.Next() {
-		var hash, coinbase, parentHash, uncleHash, difficulty, size, rewards, num string
-		var gasUsed, gasLimit, nonce uint64
-		var txCount, uncleCount int
-		var age time.Time
+	transactions, _ := TransactionArrayQueries(db, GetAllTransactionsFromBlock, currentPage, pageLimit, blockNumber)
+	return string(transactions)
+}
 
-		err = rows.Scan(
-			&hash, &coinbase, &gasUsed, &gasLimit, &txCount, &uncleCount, &age, &parentHash, &uncleHash, &difficulty, &size, &nonce, &rewards, &num)
+func SGetAllBlocksMinedByAddress(currentPage int64, pageLimit int64, coinbase string) string {
+	db := ConnectShyftDatabase()
 
-		arr.Blocks = append(arr.Blocks, types.SBlock{
-			Hash:       hash,
-			Coinbase:   coinbase,
-			GasUsed:    gasUsed,
-			GasLimit:   gasLimit,
-			TxCount:    txCount,
-			UncleCount: uncleCount,
-			Age:        age,
-			ParentHash: parentHash,
-			UncleHash:  uncleHash,
-			Difficulty: difficulty,
-			Size:       size,
-			Nonce:      nonce,
-			Rewards:    rewards,
-			Number:     num,
-		})
-
-		blocks, _ := json.Marshal(arr.Blocks)
-		blocksFmt := string(blocks)
-		blockArr = blocksFmt
-	}
-	return blockArr, nil
+	blocks, _ := BlockArrayQueries(db, GetAllBlocksMinedByAddress, currentPage, pageLimit, coinbase)
+	return string(blocks)
 }
 
 //GetAllTransactions getter fn for API
-func SGetAllTransactions() (string, error) {
-	db, err := ReturnShyftDatabase()
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-	var arr types.TxRes
-	var txx string
-	tx, _ := db.Db.Begin()
-	rows, err := db.Db.Query(`SELECT * FROM txs`)
-	tx.Commit()
-	if err != nil {
-		fmt.Println("err")
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var txhash, to_addr, from_addr, txfee, blockhash, blocknumber, amount, status string
-		var gasprice, gas, gasLimit, nonce uint64
-		var isContract bool
-		var age time.Time
-		var data []byte
+func SGetAllTransactionsWithoutLimit() string {
+	db := ConnectShyftDatabase()
 
-		err = rows.Scan(
-			&txhash, &to_addr, &from_addr, &blockhash, &blocknumber, &amount, &gasprice, &gas, &gasLimit, &txfee, &nonce, &status, &isContract, &age, &data,
-		)
+	transactions, _ := TransactionArrayQueries(db, GetAllTransactionsNoLimit, 0, 0, "")
+	return string(transactions)
+}
 
-		arr.TxEntry = append(arr.TxEntry, types.ShyftTxEntryPretty{
-			TxHash:      txhash,
-			To:          to_addr,
-			From:        from_addr,
-			BlockHash:   blockhash,
-			BlockNumber: blocknumber,
-			Amount:      amount,
-			GasPrice:    gasprice,
-			Gas:         gas,
-			GasLimit:    gasLimit,
-			Cost:        txfee,
-			Nonce:       nonce,
-			Status:      status,
-			IsContract:  isContract,
-			Age:         age,
-			Data:        data,
-		})
+//GetAllTransactions getter fn for API
+func SGetAllTransactions(currentPage int64, pageLimit int64) string {
+	db := ConnectShyftDatabase()
 
-		txData, _ := json.Marshal(arr.TxEntry)
-		newtx := string(txData)
-		txx = newtx
-	}
-	return txx, nil
+	transactions, _ := TransactionArrayQueries(db, GetAllTransactions, currentPage, pageLimit, "")
+	return string(transactions)
 }
 
 //GetTransaction fn returns single tx
-func SGetTransaction(txHash string) (string, error) {
-	db, err := ReturnShyftDatabase()
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-	sqlStatement := `SELECT * FROM txs WHERE txhash=$1;`
-	tx, _ := db.Db.Begin()
-	row := db.Db.QueryRow(sqlStatement, txHash)
-	tx.Commit()
-	var txhash, to_addr, from_addr, txfee, blockhash, blocknumber, amount, status string
-	var gasprice, gas, gasLimit, nonce uint64
-	var isContract bool
-	var age time.Time
-	var data []byte
+func SGetTransaction(txHash string) string {
+	db := ConnectShyftDatabase()
 
-	row.Scan(
-		&txhash, &to_addr, &from_addr, &blockhash, &blocknumber, &amount, &gasprice, &gas, &gasLimit, &txfee, &nonce, &status, &isContract, &age, &data)
+	transaction := TransactionQuery(db, GetTransaction, txHash)
+	return string(transaction)
+}
 
-	txData := types.ShyftTxEntryPretty{
-		TxHash:      txhash,
-		To:          to_addr,
-		From:        from_addr,
-		BlockHash:   blockhash,
-		BlockNumber: blocknumber,
-		Amount:      amount,
-		GasPrice:    gasprice,
-		Gas:         gas,
-		GasLimit:    gasLimit,
-		Cost:        txfee,
-		Nonce:       nonce,
-		Status:      status,
-		IsContract:  isContract,
-		Age:         age,
-		Data:        data,
-	}
-	json, _ := json.Marshal(txData)
+// GetAllTransactionsLength returns number of records in blocks table
+// This tells the client-UI how many pages to show for pagination
+func GetAllAccountsLength() (int, error) {
+	db := ConnectShyftDatabase()
 
-	return string(json), nil
+	count := RecordCountQuery(db, GetAccountCount)
+
+	return count, nil
 }
 
 //GetAllAccounts returns all accounts and balances
-func SGetAllAccounts() (string, error) {
-	db, err := ReturnShyftDatabase()
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-	var array types.AccountRes
-	var accountsArr, nonce string
-	tx, _ := db.Db.Begin()
-	accs, err := db.Db.Query(`
-		SELECT
-			addr,
-			balance,
-			nonce
-		FROM accounts`)
-	tx.Commit()
-	if err != nil {
-		fmt.Println(err)
-	}
+func SGetAllAccounts(currentPage int64, pageLimit int64) string {
+	db := ConnectShyftDatabase()
 
-	defer accs.Close()
-
-	for accs.Next() {
-		var addr, balance string
-		err = accs.Scan(
-			&addr, &balance, &nonce,
-		)
-
-		array.AllAccounts = append(array.AllAccounts, types.SAccounts{
-			Addr:         addr,
-			Balance:      balance,
-			AccountNonce: nonce,
-		})
-
-		accounts, _ := json.Marshal(array.AllAccounts)
-		accountsFmt := string(accounts)
-		accountsArr = accountsFmt
-	}
-	return accountsArr, nil
+	accounts := AccountArrayQueries(db, GetAllAccounts, currentPage, pageLimit, "")
+	return string(accounts)
 }
 
 func InnerSGetAccount(db *SPGDatabase, address string) (types.SAccounts, bool) {
@@ -483,178 +148,53 @@ func InnerSGetAccount(db *SPGDatabase, address string) (types.SAccounts, bool) {
 
 //GetAccount returns account balances
 func SGetAccount(address string) (string, error) {
-	db, err := ReturnShyftDatabase()
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-	var account, _ = InnerSGetAccount(db, address)
-	json, _ := json.Marshal(account)
-	return string(json), nil
+	db := ConnectShyftDatabase()
+
+	account := AccountQuery(db, GetAccount, 0, 0, address)
+	return string(account), nil
 }
 
 //GetAccount returns account balances
-func SGetAccountTxs(address string) (string, error) {
-	db, err := ReturnShyftDatabase()
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-	var arr types.TxRes
-	var txx string
-	sqlStatement := `SELECT * FROM txs WHERE to_addr=$1 OR from_addr=$1;`
-	tx, _ := db.Db.Begin()
-	rows, err := db.Db.Query(sqlStatement, address)
-	tx.Commit()
-	if err != nil {
-		fmt.Println("err", err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var txhash, to_addr, from_addr, txfee, blockhash, blocknumber, amount, status string
-		var gasprice, gas, gasLimit, nonce uint64
-		var isContract bool
-		var age time.Time
-		var data []byte
+func SGetAccountTxs(currentPage int64, pageLimit int64, address string) (string, error) {
+	db := ConnectShyftDatabase()
 
-		err = rows.Scan(
-			&txhash, &to_addr, &from_addr, &blockhash, &blocknumber, &amount, &gasprice, &gas, &gasLimit, &txfee, &nonce, &status, &isContract, &age, &data,
-		)
+	transactions, _ := TransactionArrayQueries(db, GetAccountTransactions, currentPage, pageLimit, address)
+	return string(transactions), nil
+}
 
-		arr.TxEntry = append(arr.TxEntry, types.ShyftTxEntryPretty{
-			TxHash:      txhash,
-			To:          to_addr,
-			From:        from_addr,
-			BlockHash:   blockhash,
-			BlockNumber: blocknumber,
-			Amount:      amount,
-			GasPrice:    gasprice,
-			Gas:         gas,
-			GasLimit:    gasLimit,
-			Cost:        txfee,
-			Nonce:       nonce,
-			Status:      status,
-			IsContract:  isContract,
-			Age:         age,
-			Data:        data,
-		})
+// GetAllTransactionsLength returns number of records in blocks table
+// This tells the client-UI how many pages to show for pagination
+func GetAllInternalTransactionsLength() (int, error) {
+	db := ConnectShyftDatabase()
 
-		txData, _ := json.Marshal(arr.TxEntry)
-		newtx := string(txData)
-		txx = newtx
-	}
-	return txx, nil
+	count := RecordCountQuery(db, GetInternalTransactionLength)
+
+	return count, nil
 }
 
 //GetAllInternalTransactions getter fn for API
-func SGetAllInternalTransactions() (string, error) {
-	db, err := ReturnShyftDatabase()
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-	var arr types.InternalArray
-	var internaltx string
-	tx, _ := db.Db.Begin()
-	rows, err := db.Db.Query(`SELECT * FROM internaltxs`)
-	tx.Commit()
-	if err != nil {
-		fmt.Println("err")
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var txhash, blockhash, action, to_addr, from_addr, amount, input, output string
-		var gas, gasUsed uint64
-		var id int
-		var age string
+func SGetAllInternalTransactions(currentPage int64, pageLimit int64) (string, error) {
+	db := ConnectShyftDatabase()
 
-		err = rows.Scan(
-			&id, &txhash, &blockhash, &action, &to_addr, &from_addr, &amount, &gas, &gasUsed, &age, &input, &output,
-		)
-
-		arr.InternalEntry = append(arr.InternalEntry, types.InteralWrite{
-			ID:        id,
-			Hash:      txhash,
-			BlockHash: blockhash,
-			Action:    action,
-			To:        to_addr,
-			From:      from_addr,
-			Value:     amount,
-			Gas:       gas,
-			GasUsed:   gasUsed,
-			Time:      age,
-			Input:     input,
-			Output:    output,
-		})
-
-		txData, _ := json.Marshal(arr.InternalEntry)
-		newtx := string(txData)
-		internaltx = newtx
-	}
-	return internaltx, nil
+	transactions := InternalTransactionArrayQuery(db, GetAllInternalTransactions, currentPage, pageLimit)
+	return string(transactions), nil
 }
 
 //GetInternalTransaction fn returns single tx
-func SGetInternalTransaction(txHash string) (string, error) {
-	db, err := ReturnShyftDatabase()
-	if err != nil {
-		fmt.Println(err)
-		return "", nil
-	}
-	var arr types.InternalArray
-	var internaltx string
+func SGetInternalTransaction(currentPage int64, pageLimit int64, txHash string) (string, error) {
+	db := ConnectShyftDatabase()
 
-	sqlStatement := `SELECT * FROM internaltxs WHERE txhash=$1;`
-	tx, _ := db.Db.Begin()
-	rows, err := db.Db.Query(sqlStatement, txHash)
-	tx.Commit()
-	if err != nil {
-		fmt.Println("err")
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var txhash, blockhash, action, to_addr, from_addr, amount, input, output string
-		var id int
-		var gas, gasUsed uint64
-		var age string
-
-		err = rows.Scan(
-			&id, &txhash, &blockhash, &action, &to_addr, &from_addr, &amount, &gas, &gasUsed, &age, &input, &output,
-		)
-
-		arr.InternalEntry = append(arr.InternalEntry, types.InteralWrite{
-			ID:        id,
-			Hash:      txhash,
-			BlockHash: blockhash,
-			Action:    action,
-			To:        to_addr,
-			From:      from_addr,
-			Value:     amount,
-			Gas:       gas,
-			GasUsed:   gasUsed,
-			Time:      age,
-			Input:     input,
-			Output:    output,
-		})
-
-		txData, _ := json.Marshal(arr.InternalEntry)
-		newtx := string(txData)
-		internaltx = newtx
-	}
-	return internaltx, nil
+	transactions := InternalTransactionArrayQuery(db, GetAllInternalTransactions, currentPage, pageLimit)
+	return string(transactions), nil
 }
 
 func SGetAllAccountBlocks() (string, error) {
-	db, err := ReturnShyftDatabase()
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
+	db := ConnectShyftDatabase()
+
 	var arr types.AccountBlockArray
 	var accountBlockJSON string
 	tx, _ := db.Db.Begin()
-	rows, err := db.Db.Query(`SELECT * FROM accountblocks`)
+	rows, err := db.Db.Query(GetAllAccountBlocks)
 	tx.Commit()
 	if err != nil {
 		fmt.Println("err")

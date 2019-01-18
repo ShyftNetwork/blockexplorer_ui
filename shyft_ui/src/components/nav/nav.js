@@ -1,4 +1,5 @@
 import React from "react";
+import Search from './searchbar';
 import classes from './nav.css';
 import { Link } from 'react-router-dom'
 
@@ -19,7 +20,7 @@ class navBar extends React.Component  {
     return (
       <div>
         <div className={classes.navHeader}>
-          <h5 className={classes.headerText}> Block Explorer </h5>
+          <Search/>
           <div className={classes.buttonContainer}>
             <Link to="/blocks">  
               <button 

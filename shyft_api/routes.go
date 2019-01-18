@@ -16,6 +16,12 @@ type Routes []Route
 
 var routes = Routes{
 	Route{
+		"GetAllAccountLength",
+		"GET",
+		"/api/get_all_accounts_length",
+		SGetAllAccountsLength,
+	},
+	Route{
 		"GetAccount",
 		"GET",
 		"/api/get_account/{address}",
@@ -24,13 +30,13 @@ var routes = Routes{
 	Route{
 		"GetAccountTxs",
 		"GET",
-		"/api/get_account_txs/{address}",
+		"/api/get_account_txs//{currentPage}/{pageLimit}/{address}",
 		GetAccountTxs,
 	},
 	Route{
 		"GetAllAccounts",
 		"GET",
-		"/api/get_all_accounts",
+		"/api/get_all_accounts/{currentPage}/{pageLimit}",
 		GetAllAccounts,
 	},
 	Route{
@@ -58,9 +64,21 @@ var routes = Routes{
 		GetBlock,
 	},
 	Route{
+		"GetAllTransactionsWithoutLimit",
+		"GET",
+		"/api/get_all_transactions_nolimit",
+		GetAllTransactionsWithoutLimit,
+	},
+	Route{
+		"GetAllTransactionsLength",
+		"GET",
+		"/api/get_all_transactions_length",
+		SGetAllTransactionsLength,
+	},
+	Route{
 		"GetAllTransactions",
 		"GET",
-		"/api/get_all_transactions",
+		"/api/get_all_transactions/{currentPage}/{pageLimit}",
 		GetAllTransactions,
 	},
 	Route{
@@ -78,26 +96,32 @@ var routes = Routes{
 	Route{
 		Name:        "GetAllTransactionsFromBlock",
 		Method:      "GET",
-		Pattern:     "/api/get_all_transactions_from_block/{blockNumber}",
+		Pattern:     "/api/get_all_transactions_from_block/{currentPage}/{pageLimit}/{blockNumber}",
 		HandlerFunc: GetAllTransactionsFromBlock,
 	},
 	Route{
 		Name:        "GetAllBlocksMinedByAddress",
 		Method:      "GET",
-		Pattern:     "/api/get_blocks_mined/{coinbase}",
+		Pattern:     "/api/get_blocks_mined/{currentPage}/{pageLimit}/{coinbase}",
 		HandlerFunc: GetAllBlocksMinedByAddress,
 	},
 	Route{
 		"GetInternalTransactions",
 		"GET",
-		"/api/get_internal_transactions/",
+		"/api/get_internal_transactions/{currentPage}/{pageLimit}",
 		GetInternalTransactions,
 	},
 	Route{
 		"GetInternalTransactionsByHash",
 		"GET",
-		"/api/get_internal_transactions/{txHash}",
+		"/api/get_internal_transactions/{currentPage}/{pageLimit}/{txHash}",
 		GetInternalTransactionsByHash,
+	},
+	Route{
+		"GetAllInternalTransactionsLength",
+		"GET",
+		"/api/get_all_internal_transactions_length",
+		SGetAllInternalTransactionsLength,
 	},
 	Route{
 		"BroadcastTx",

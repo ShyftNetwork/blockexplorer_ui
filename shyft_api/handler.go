@@ -2,29 +2,52 @@ package main
 
 ///@NOTE Shyft handler functions when endpoints are hit
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
 	"github.com/ShyftNetwork/blockexplorer_ui/shyft_api/db"
 	_ "github.com/lib/pq"
 
-	"bytes"
-	"encoding/json"
-	"io/ioutil"
-
 	"github.com/gorilla/mux"
 )
+
+// Count all rows in Blocks Table
+func SGetAllTransactionsLength(w http.ResponseWriter, r *http.Request) {
+	count, err := db.GetAllTransactionsLength()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, count)
+}
+
+// GetAllBlocks response
+func GetAllTransactionsWithoutLimit(w http.ResponseWriter, r *http.Request) {
+	blocks := db.SGetAllTransactionsWithoutLimit()
+	// if err != nil {
+	// 	http.Error(w, err.Error(), 500)
+	// 	return
+	// }
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, blocks)
+}
 
 // GetTransaction gets txs
 func GetTransaction(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	txHash := vars["txHash"]
-	getTxResponse, err := db.SGetTransaction(txHash)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
+	getTxResponse := db.SGetTransaction(txHash)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), 500)
+	// 	return
+	// }
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
@@ -34,7 +57,13 @@ func GetTransaction(w http.ResponseWriter, r *http.Request) {
 
 // GetAllTransactions gets txs
 func GetAllTransactions(w http.ResponseWriter, r *http.Request) {
-	txs, err := db.SGetAllTransactions()
+	vars := mux.Vars(r)
+	currentPage := vars["currentPage"]
+	pageLimit := vars["pageLimit"]
+	page, err := strconv.ParseInt(currentPage, 10, 64)
+	limit, err := strconv.ParseInt(pageLimit, 10, 64)
+
+	txs := db.SGetAllTransactions(page, limit)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -47,11 +76,15 @@ func GetAllTransactions(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, txs)
 }
 
-// GetAllTransactions gets txs
 func GetAllTransactionsFromBlock(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+	currentPage := vars["currentPage"]
+	pageLimit := vars["pageLimit"]
 	blockNumber := vars["blockNumber"]
-	txsFromBlock, err := db.SGetAllTransactionsFromBlock(blockNumber)
+	page, err := strconv.ParseInt(currentPage, 10, 64)
+	limit, err := strconv.ParseInt(pageLimit, 10, 64)
+
+	txsFromBlock := db.SGetAllTransactionsFromBlock(page, limit, blockNumber)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -67,8 +100,12 @@ func GetAllTransactionsFromBlock(w http.ResponseWriter, r *http.Request) {
 func GetAllBlocksMinedByAddress(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	coinbase := vars["coinbase"]
+	currentPage := vars["currentPage"]
+	pageLimit := vars["pageLimit"]
+	page, err := strconv.ParseInt(currentPage, 10, 64)
+	limit, err := strconv.ParseInt(pageLimit, 10, 64)
 
-	blocksMined, err := db.SGetAllBlocksMinedByAddress(coinbase)
+	blocksMined := db.SGetAllBlocksMinedByAddress(page, limit, coinbase)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -79,6 +116,18 @@ func GetAllBlocksMinedByAddress(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	fmt.Fprintln(w, blocksMined)
+}
+
+// Count all rows in Blocks Table
+func SGetAllAccountsLength(w http.ResponseWriter, r *http.Request) {
+	count, err := db.GetAllAccountsLength()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, count)
 }
 
 // GetAccount gets balance
@@ -103,8 +152,12 @@ func GetAccount(w http.ResponseWriter, r *http.Request) {
 func GetAccountTxs(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	address := vars["address"]
+	currentPage := vars["currentPage"]
+	pageLimit := vars["pageLimit"]
+	page, err := strconv.ParseInt(currentPage, 10, 64)
+	limit, err := strconv.ParseInt(pageLimit, 10, 64)
 
-	getAccountTxs, err := db.SGetAccountTxs(address)
+	getAccountTxs, err := db.SGetAccountTxs(page, limit, address)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -119,7 +172,13 @@ func GetAccountTxs(w http.ResponseWriter, r *http.Request) {
 
 // GetAllAccounts gets balances
 func GetAllAccounts(w http.ResponseWriter, r *http.Request) {
-	allAccounts, err := db.SGetAllAccounts()
+	vars := mux.Vars(r)
+	currentPage := vars["currentPage"]
+	pageLimit := vars["pageLimit"]
+	page, err := strconv.ParseInt(currentPage, 10, 64)
+	limit, err := strconv.ParseInt(pageLimit, 10, 64)
+
+	allAccounts := db.SGetAllAccounts(page, limit)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -198,15 +257,31 @@ func GetRecentBlock(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, mostRecentBlock)
+}
 
+// Count all rows in Blocks Table
+func SGetAllInternalTransactionsLength(w http.ResponseWriter, r *http.Request) {
+	count, err := db.GetAllInternalTransactionsLength()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, count)
 }
 
 //GetInternalTransactions gets internal txs
 func GetInternalTransactionsByHash(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	txHash := vars["txHash"]
+	currentPage := vars["currentPage"]
+	pageLimit := vars["pageLimit"]
 
-	internalTxs, err := db.SGetInternalTransaction(txHash)
+	page, err := strconv.ParseInt(currentPage, 10, 64)
+	limit, err := strconv.ParseInt(pageLimit, 10, 64)
+
+	internalTxs, err := db.SGetInternalTransaction(page, limit, txHash)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -220,7 +295,14 @@ func GetInternalTransactionsByHash(w http.ResponseWriter, r *http.Request) {
 
 //GetInternalTransactionsHash gets internal txs hash
 func GetInternalTransactions(w http.ResponseWriter, r *http.Request) {
-	internalTxs, err := db.SGetAllInternalTransactions()
+	vars := mux.Vars(r)
+	currentPage := vars["currentPage"]
+	pageLimit := vars["pageLimit"]
+
+	page, err := strconv.ParseInt(currentPage, 10, 64)
+	limit, err := strconv.ParseInt(pageLimit, 10, 64)
+
+	internalTxs, err := db.SGetAllInternalTransactions(page, limit)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
