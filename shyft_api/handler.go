@@ -29,11 +29,11 @@ func SGetAllTransactionsLength(w http.ResponseWriter, r *http.Request) {
 
 // GetAllBlocks response
 func GetAllTransactionsWithoutLimit(w http.ResponseWriter, r *http.Request) {
-	blocks, err := db.SGetAllTransactionsWithoutLimit()
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
+	blocks := db.SGetAllTransactionsWithoutLimit()
+	// if err != nil {
+	// 	http.Error(w, err.Error(), 500)
+	// 	return
+	// }
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, blocks)
@@ -43,11 +43,11 @@ func GetAllTransactionsWithoutLimit(w http.ResponseWriter, r *http.Request) {
 func GetTransaction(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	txHash := vars["txHash"]
-	getTxResponse, err := db.SGetTransaction(txHash)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
+	getTxResponse := db.SGetTransaction(txHash)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), 500)
+	// 	return
+	// }
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
@@ -63,7 +63,7 @@ func GetAllTransactions(w http.ResponseWriter, r *http.Request) {
 	page, err := strconv.ParseInt(currentPage, 10, 64)
 	limit, err := strconv.ParseInt(pageLimit, 10, 64)
 
-	txs, err := db.SGetAllTransactions(page, limit)
+	txs := db.SGetAllTransactions(page, limit)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -76,35 +76,36 @@ func GetAllTransactions(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, txs)
 }
 
-// GetAllTransactions gets txs
-// func GetAllTransactionsFromBlock(w http.ResponseWriter, r *http.Request) {
-// 	vars := mux.Vars(r)
-// 	currentPage := vars["currentPage"]
-// 	pageLimit := vars["pageLimit"]
-// 	blockNumber := vars["blockNumber"]
+func GetAllTransactionsFromBlock(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	currentPage := vars["currentPage"]
+	pageLimit := vars["pageLimit"]
+	blockNumber := vars["blockNumber"]
+	page, err := strconv.ParseInt(currentPage, 10, 64)
+	limit, err := strconv.ParseInt(pageLimit, 10, 64)
 
-// 	txsFromBlock, err := db.SGetAllTransactionsFromBlock(page, limit, blockNumber)
+	txsFromBlock := db.SGetAllTransactionsFromBlock(page, limit, blockNumber)
 
-// 	if err != nil {
-// 		http.Error(w, err.Error(), 500)
-// 		return
-// 	}
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
 
-// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-// 	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
 
-// 	fmt.Fprintln(w, txsFromBlock)
-// }
+	fmt.Fprintln(w, txsFromBlock)
+}
 
 func GetAllBlocksMinedByAddress(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	coinbase := vars["coinbase"]
-	// currentPage := vars["currentPage"]
-	// pageLimit := vars["pageLimit"]
-	// page, err := strconv.ParseInt(currentPage, 10, 64)
-	// limit, err := strconv.ParseInt(pageLimit, 10, 64)
+	currentPage := vars["currentPage"]
+	pageLimit := vars["pageLimit"]
+	page, err := strconv.ParseInt(currentPage, 10, 64)
+	limit, err := strconv.ParseInt(pageLimit, 10, 64)
 
-	blocksMined, err := db.SGetAllBlocksMinedByAddress(coinbase)
+	blocksMined := db.SGetAllBlocksMinedByAddress(page, limit, coinbase)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -115,6 +116,18 @@ func GetAllBlocksMinedByAddress(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	fmt.Fprintln(w, blocksMined)
+}
+
+// Count all rows in Blocks Table
+func SGetAllAccountsLength(w http.ResponseWriter, r *http.Request) {
+	count, err := db.GetAllAccountsLength()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, count)
 }
 
 // GetAccount gets balance
@@ -139,12 +152,12 @@ func GetAccount(w http.ResponseWriter, r *http.Request) {
 func GetAccountTxs(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	address := vars["address"]
-	// currentPage := vars["currentPage"]
-	// pageLimit := vars["pageLimit"]
-	// page, err := strconv.ParseInt(currentPage, 10, 64)
-	// limit, err := strconv.ParseInt(pageLimit, 10, 64)
+	currentPage := vars["currentPage"]
+	pageLimit := vars["pageLimit"]
+	page, err := strconv.ParseInt(currentPage, 10, 64)
+	limit, err := strconv.ParseInt(pageLimit, 10, 64)
 
-	getAccountTxs, err := db.SGetAccountTxs(address)
+	getAccountTxs, err := db.SGetAccountTxs(page, limit, address)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -159,13 +172,13 @@ func GetAccountTxs(w http.ResponseWriter, r *http.Request) {
 
 // GetAllAccounts gets balances
 func GetAllAccounts(w http.ResponseWriter, r *http.Request) {
-	// vars := mux.Vars(r)
-	// currentPage := vars["currentPage"]
-	// pageLimit := vars["pageLimit"]
-	// page, err := strconv.ParseInt(currentPage, 10, 64)
-	// limit, err := strconv.ParseInt(pageLimit, 10, 64)
+	vars := mux.Vars(r)
+	currentPage := vars["currentPage"]
+	pageLimit := vars["pageLimit"]
+	page, err := strconv.ParseInt(currentPage, 10, 64)
+	limit, err := strconv.ParseInt(pageLimit, 10, 64)
 
-	allAccounts, err := db.SGetAllAccounts()
+	allAccounts := db.SGetAllAccounts(page, limit)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -235,23 +248,40 @@ func GetAllBlocks(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, blocks)
 }
 
-// func GetRecentBlock(w http.ResponseWriter, r *http.Request) {
-// 	mostRecentBlock, err := db.SGetRecentBlock()
-// 	if err != nil {
-// 		http.Error(w, err.Error(), 500)
-// 		return
-// 	}
-// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-// 	w.WriteHeader(http.StatusOK)
-// 	fmt.Fprintln(w, mostRecentBlock)
-// }
+func GetRecentBlock(w http.ResponseWriter, r *http.Request) {
+	mostRecentBlock, err := db.SGetRecentBlock()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, mostRecentBlock)
+}
+
+// Count all rows in Blocks Table
+func SGetAllInternalTransactionsLength(w http.ResponseWriter, r *http.Request) {
+	count, err := db.GetAllInternalTransactionsLength()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, count)
+}
 
 //GetInternalTransactions gets internal txs
 func GetInternalTransactionsByHash(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	txHash := vars["txHash"]
+	currentPage := vars["currentPage"]
+	pageLimit := vars["pageLimit"]
 
-	internalTxs, err := db.SGetInternalTransaction(txHash)
+	page, err := strconv.ParseInt(currentPage, 10, 64)
+	limit, err := strconv.ParseInt(pageLimit, 10, 64)
+
+	internalTxs, err := db.SGetInternalTransaction(page, limit, txHash)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -265,7 +295,14 @@ func GetInternalTransactionsByHash(w http.ResponseWriter, r *http.Request) {
 
 //GetInternalTransactionsHash gets internal txs hash
 func GetInternalTransactions(w http.ResponseWriter, r *http.Request) {
-	internalTxs, err := db.SGetAllInternalTransactions()
+	vars := mux.Vars(r)
+	currentPage := vars["currentPage"]
+	pageLimit := vars["pageLimit"]
+
+	page, err := strconv.ParseInt(currentPage, 10, 64)
+	limit, err := strconv.ParseInt(pageLimit, 10, 64)
+
+	internalTxs, err := db.SGetAllInternalTransactions(page, limit)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return

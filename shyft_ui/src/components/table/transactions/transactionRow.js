@@ -4,6 +4,7 @@ import Pagination from '../pagination/pagination';
 import classes from './table.css';
 import axios from "axios";
 import ErrorMessage from './errorMessage';
+import Loading from '../../UI materials/loading'
 import {API_URL} from "../../../constants/apiURL";
 
 class TransactionTable extends Component {
@@ -97,7 +98,7 @@ class TransactionTable extends Component {
                                 <Pagination totalRecords={this.state.totalRecords} pageLimit={25} pageNeighbours={1} onPageChanged={this.onPageChanged} />
                             </div>
                         </table>
-                    : <ErrorMessage />
+                    : <Loading>Transactions</Loading>
                 } 
             </div>           
         );

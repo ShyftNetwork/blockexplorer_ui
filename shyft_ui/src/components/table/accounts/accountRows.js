@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 import AccountsTable from './accountsTable';
+import Pagination from '../pagination/pagination';
 import classes from './accounts.css';
 import axios from "axios/index";
 import ErrorMessage from './errorMessage';
+import Loading from '../../UI materials/loading'
 import {API_URL} from "../../../constants/apiURL";
 
 class AccountTable extends Component {
@@ -15,18 +17,44 @@ class AccountTable extends Component {
     }
 
     async componentDidMount() {
+        let pageLimit= 25;
+        let currentPage = 1;
         try {
-            const response = await axios.get(`${API_URL}/get_all_accounts`);
-            if(response.data === "\n") {
-                this.setState({emptyDataSet: true})                                   
-            } else {
-                this.setState({emptyDataSet: false})                  
-            }      
-            await this.setState({data: response.data});
+            const response = await axios.get(`${API_URL}/get_all_accounts_length`);
+            await this.setState({totalRecords: response.data});
+            try {
+                const response = await axios.get(`${API_URL}/get_all_accounts/${currentPage}/${pageLimit}`);
+                if(response.data === "\n") {
+                    this.setState({emptyDataSet: true})
+                } else {
+                    this.setState({emptyDataSet: false})
+                }
+                await this.setState({data: response.data});
+            } catch (err) {
+                console.log(err);
+            }
         } catch (err) {
             console.log(err);
         }
+}
+
+onPageChanged = async(data) => {
+    const { currentPage, totalPages, pageLimit } = data;
+
+    const offset = (currentPage - 1) * pageLimit;
+
+    try {
+        const response = await axios.get(`${API_URL}/get_all_accounts/${currentPage}/${pageLimit}`);
+        if(response.data === "\n") {
+            this.setState({emptyDataSet: true})
+        } else {
+            this.setState({emptyDataSet: false})
+        }
+        await this.setState({data: response.data});
+    } catch (err) {
+        console.log(err);
     }
+};
 
     render() {
         let startNum = 1;
@@ -68,8 +96,11 @@ class AccountTable extends Component {
                                 </tr>
                             </thead>
                             { table } 
+                            <div id={classes.pages}>
+                                <Pagination totalRecords={this.state.totalRecords} pageLimit={25} pageNeighbours={1} onPageChanged={this.onPageChanged} />
+                            </div>
                         </table>
-                    : <ErrorMessage />
+                    : <Loading>Accounts</Loading>
                 } 
             </div>
         );

@@ -1,10 +1,13 @@
 .navHeader {
     height: 150pt;
     background-color: #4f2e7e;
-    padding-top: 30pt;
+    padding-top: 5pt;
     padding-left: 2.5%;
     z-index: -10000;
     width: 100%;
+}
+.MuiAppBar-colorPrimary-16 {
+    background-color: #4f2e7e !important;
 }
 
 .headerText { 

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import BlockTable from './blockTable';
 import ErrorMessage from './errorMessage';
+import Loading from '../../UI materials/loading'
 import Pagination from '../pagination/pagination';
 import classes from './table.css';
 import axios from "axios/index";
@@ -23,7 +24,6 @@ class BlocksTable extends Component {
             const response = await axios.get(`${API_URL}/get_all_blocks_length`);
             await this.setState({totalRecords: response.data});
             try {
-                console.log("CALLED TWICE?")
                 const response = await axios.get(`${API_URL}/get_all_blocks/${currentPage}/${pageLimit}`);
                 if(response.data === "\n") {
                     this.setState({emptyDataSet: true})
@@ -40,10 +40,7 @@ class BlocksTable extends Component {
     }
 
     onPageChanged = async(data) => {
-        console.log("THAN?")
         const { currentPage, totalPages, pageLimit } = data;
-
-        const offset = (currentPage - 1) * pageLimit;
 
         try {
             const response = await axios.get(`${API_URL}/get_all_blocks/${currentPage}/${pageLimit}`);
@@ -106,7 +103,7 @@ class BlocksTable extends Component {
                                     <Pagination totalRecords={this.state.totalRecords} pageLimit={25} pageNeighbours={1} onPageChanged={this.onPageChanged} />
                                 </div>
                             </table>
-                    : <ErrorMessage />
+                    : <Loading>Blocks</Loading>
                 }
             </div>
         );

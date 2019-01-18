@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
 import InternalTable from './internalTable';
+import Pagination from '../pagination/pagination';
 import classes from './table.css';
 import axios from "axios";
 import {API_URL} from "../../../constants/apiURL";
 import ErrorMessage from './errorMessage';
+import Loading from '../../UI materials/loading'
 
 class InternalTransactionsTable extends Component {
     constructor(props) {
@@ -15,14 +17,22 @@ class InternalTransactionsTable extends Component {
     }
 
     async componentDidMount() {
+        let pageLimit= 25;
+        let currentPage = 1;
         try {
-            const response = await axios.get(`${API_URL}/get_internal_transactions/`);
-            if(response.data === "\n") {
-                this.setState({emptyDataSet: true})                                   
-            } else {
-                this.setState({emptyDataSet: false})                  
-            }         
-            await this.setState({data: response.data});
+            const response = await axios.get(`${API_URL}/get_internal_transactions_length/`);
+            await this.setState({totalRecords: response.data});
+            try {
+                const response = await axios.get(`${API_URL}/get_internal_transactions/${currentPage}/${pageLimit}`);
+                if(response.data === "\n") {
+                    this.setState({emptyDataSet: true})
+                } else {
+                    this.setState({emptyDataSet: false})
+                }
+                await this.setState({data: response.data});
+            } catch (err) {
+                console.log(err);
+            }
         } catch (err) {
             console.log(err);
         }
@@ -72,8 +82,11 @@ class InternalTransactionsTable extends Component {
                             </tr>
                         </thead>
                         {table}
+                        <div id={classes.pages}>
+                                    <Pagination totalRecords={this.state.totalRecords} pageLimit={25} pageNeighbours={1} onPageChanged={this.onPageChanged} />
+                        </div>
                     </table>
-                    : <ErrorMessage />
+                    : <Loading>Internal Transactions</Loading>
                 } 
             </div>
         );
