@@ -1,4 +1,4 @@
-package main
+package api
 
 ///@NOTE Shyft handler functions when endpoints are hit
 import (
@@ -13,15 +13,17 @@ import (
 	_ "github.com/lib/pq"
 
 	"github.com/gorilla/mux"
+	b "github.com/ShyftNetwork/blockexplorer_ui/shyft_api/api/blocks"
+	tx "github.com/ShyftNetwork/blockexplorer_ui/shyft_api/api/transactions"
+	acc "github.com/ShyftNetwork/blockexplorer_ui/shyft_api/api/accounts"
 )
 
 // Count all rows in Blocks Table
 func SGetAllTransactionsLength(w http.ResponseWriter, r *http.Request) {
-	count, err := db.GetAllTransactionsLength()
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
+	dbase := db.ConnectShyftDatabase()
+
+	count := db.RecordCountQuery(dbase, db.GetBlockCount)
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, count)
@@ -29,41 +31,48 @@ func SGetAllTransactionsLength(w http.ResponseWriter, r *http.Request) {
 
 // GetAllBlocks response
 func GetAllTransactionsWithoutLimit(w http.ResponseWriter, r *http.Request) {
-	blocks := db.SGetAllTransactionsWithoutLimit()
-	// if err != nil {
-	// 	http.Error(w, err.Error(), 500)
-	// 	return
-	// }
+	dbase := db.ConnectShyftDatabase()
+
+	txs, err := tx.TransactionArrayQueries(dbase, db.GetAllTransactionsNoLimit, 0, 0, "")
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, blocks)
+	fmt.Fprintln(w, string(txs))
 }
 
 // GetTransaction gets txs
 func GetTransaction(w http.ResponseWriter, r *http.Request) {
+	dbase := db.ConnectShyftDatabase()
+
 	vars := mux.Vars(r)
 	txHash := vars["txHash"]
-	getTxResponse := db.SGetTransaction(txHash)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), 500)
-	// 	return
-	// }
+	transaction, err := tx.TransactionQuery(dbase, db.GetTransaction, txHash)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
-	fmt.Fprintln(w, getTxResponse)
+	fmt.Fprintln(w, string(transaction))
 }
 
 // GetAllTransactions gets txs
 func GetAllTransactions(w http.ResponseWriter, r *http.Request) {
+	dbase := db.ConnectShyftDatabase()
+
 	vars := mux.Vars(r)
 	currentPage := vars["currentPage"]
 	pageLimit := vars["pageLimit"]
 	page, err := strconv.ParseInt(currentPage, 10, 64)
 	limit, err := strconv.ParseInt(pageLimit, 10, 64)
 
-	txs := db.SGetAllTransactions(page, limit)
+	txs, _ := tx.TransactionArrayQueries(dbase, db.GetAllTransactions, page, limit, "")
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -73,10 +82,12 @@ func GetAllTransactions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
-	fmt.Fprintln(w, txs)
+	fmt.Fprintln(w, string(txs))
 }
 
 func GetAllTransactionsFromBlock(w http.ResponseWriter, r *http.Request) {
+	dbase := db.ConnectShyftDatabase()
+
 	vars := mux.Vars(r)
 	currentPage := vars["currentPage"]
 	pageLimit := vars["pageLimit"]
@@ -84,7 +95,7 @@ func GetAllTransactionsFromBlock(w http.ResponseWriter, r *http.Request) {
 	page, err := strconv.ParseInt(currentPage, 10, 64)
 	limit, err := strconv.ParseInt(pageLimit, 10, 64)
 
-	txsFromBlock := db.SGetAllTransactionsFromBlock(page, limit, blockNumber)
+	transactions, err := tx.TransactionArrayQueries(dbase, db.GetAllTransactionsFromBlock, page, limit, blockNumber)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -94,10 +105,12 @@ func GetAllTransactionsFromBlock(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
-	fmt.Fprintln(w, txsFromBlock)
+	fmt.Fprintln(w, string(transactions))
 }
 
 func GetAllBlocksMinedByAddress(w http.ResponseWriter, r *http.Request) {
+	dbase := db.ConnectShyftDatabase()
+
 	vars := mux.Vars(r)
 	coinbase := vars["coinbase"]
 	currentPage := vars["currentPage"]
@@ -105,7 +118,7 @@ func GetAllBlocksMinedByAddress(w http.ResponseWriter, r *http.Request) {
 	page, err := strconv.ParseInt(currentPage, 10, 64)
 	limit, err := strconv.ParseInt(pageLimit, 10, 64)
 
-	blocksMined := db.SGetAllBlocksMinedByAddress(page, limit, coinbase)
+	blocks, _ := b.BlockArrayQueries(dbase, db.GetAllBlocksMinedByAddress, page, limit, coinbase)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -115,16 +128,15 @@ func GetAllBlocksMinedByAddress(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
-	fmt.Fprintln(w, blocksMined)
+	fmt.Fprintln(w, string(blocks))
 }
 
 // Count all rows in Blocks Table
 func SGetAllAccountsLength(w http.ResponseWriter, r *http.Request) {
-	count, err := db.GetAllAccountsLength()
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
+	dbase := db.ConnectShyftDatabase()
+
+	count := db.RecordCountQuery(dbase, db.GetAccountCount)
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, count)
@@ -132,10 +144,12 @@ func SGetAllAccountsLength(w http.ResponseWriter, r *http.Request) {
 
 // GetAccount gets balance
 func GetAccount(w http.ResponseWriter, r *http.Request) {
+	dbase := db.ConnectShyftDatabase()
+
 	vars := mux.Vars(r)
 	address := vars["address"]
 
-	getAccountBalance, err := db.SGetAccount(address)
+	account, err := acc.AccountQuery(dbase, db.GetAccount, 0, 0, address)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -145,11 +159,13 @@ func GetAccount(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
-	fmt.Fprintln(w, getAccountBalance)
+	fmt.Fprintln(w, string(account))
 }
 
 // GetAccount gets balance
 func GetAccountTxs(w http.ResponseWriter, r *http.Request) {
+	dbase := db.ConnectShyftDatabase()
+
 	vars := mux.Vars(r)
 	address := vars["address"]
 	currentPage := vars["currentPage"]
@@ -157,7 +173,7 @@ func GetAccountTxs(w http.ResponseWriter, r *http.Request) {
 	page, err := strconv.ParseInt(currentPage, 10, 64)
 	limit, err := strconv.ParseInt(pageLimit, 10, 64)
 
-	getAccountTxs, err := db.SGetAccountTxs(page, limit, address)
+	transactions, _ := tx.TransactionArrayQueries(dbase, db.GetAccountTransactions, page, limit, address)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -167,18 +183,20 @@ func GetAccountTxs(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
-	fmt.Fprintln(w, getAccountTxs)
+	fmt.Fprintln(w, string(transactions))
 }
 
 // GetAllAccounts gets balances
 func GetAllAccounts(w http.ResponseWriter, r *http.Request) {
+	dbase := db.ConnectShyftDatabase()
+
 	vars := mux.Vars(r)
 	currentPage := vars["currentPage"]
 	pageLimit := vars["pageLimit"]
 	page, err := strconv.ParseInt(currentPage, 10, 64)
 	limit, err := strconv.ParseInt(pageLimit, 10, 64)
 
-	allAccounts := db.SGetAllAccounts(page, limit)
+	accounts := acc.AccountArrayQueries(dbase, db.GetAllAccounts, page, limit, "")
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -186,15 +204,17 @@ func GetAllAccounts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
-	fmt.Fprintln(w, allAccounts)
+	fmt.Fprintln(w, string(accounts))
 }
 
 //GetBlock returns block json
 func GetBlock(w http.ResponseWriter, r *http.Request) {
+	dbase := db.ConnectShyftDatabase()
+
 	vars := mux.Vars(r)
 	blockNumber := vars["blockNumber"]
 
-	getBlockResponse, err := db.SGetBlock(blockNumber)
+	block, err := b.BlockQueries(dbase, db.GetBlock, blockNumber)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -204,68 +224,74 @@ func GetBlock(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
-	fmt.Fprintln(w, getBlockResponse)
+	fmt.Fprintln(w, string(block))
 }
 
 // GetAllBlocks response
 func GetAllBlocksWithoutLimit(w http.ResponseWriter, r *http.Request) {
-	blocks, err := db.SGetAllBlocksWithoutLimit()
+	dbase := db.ConnectShyftDatabase()
+
+	blocks, err := b.BlockArrayQueries(dbase, db.GetAllBlocksNoLimit, 0, 0, "")
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, blocks)
+
+	fmt.Fprintln(w, string(blocks))
 }
 
 // Count all rows in Blocks Table
 func SGetAllBlocksLength(w http.ResponseWriter, r *http.Request) {
-	count, err := db.GetAllBlocksLength()
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
+	dbase := db.ConnectShyftDatabase()
+
+	count := db.RecordCountQuery(dbase, db.GetBlockCount)
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, count)
 }
 
 func GetAllBlocks(w http.ResponseWriter, r *http.Request) {
+	dbase := db.ConnectShyftDatabase()
+
 	vars := mux.Vars(r)
 	currentPage := vars["currentPage"]
 	pageLimit := vars["pageLimit"]
 	page, err := strconv.ParseInt(currentPage, 10, 64)
 	limit, err := strconv.ParseInt(pageLimit, 10, 64)
 
-	blocks, err := db.SGetAllBlocks(page, limit)
+	blocks, err := b.BlockArrayQueries(dbase, db.GetAllBlocks, page, limit, "")
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, blocks)
+	fmt.Fprintln(w, string(blocks))
 }
 
 func GetRecentBlock(w http.ResponseWriter, r *http.Request) {
-	mostRecentBlock, err := db.SGetRecentBlock()
+	dbase := db.ConnectShyftDatabase()
+
+	block, err := b.BlockQueries(dbase, db.GetBlock, "")
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, mostRecentBlock)
+	fmt.Fprintln(w, string(block))
 }
 
 // Count all rows in Blocks Table
 func SGetAllInternalTransactionsLength(w http.ResponseWriter, r *http.Request) {
-	count, err := db.GetAllInternalTransactionsLength()
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
+	dbase := db.ConnectShyftDatabase()
+
+	count := db.RecordCountQuery(dbase, db.GetInternalTransactionLength)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, count)
@@ -273,6 +299,8 @@ func SGetAllInternalTransactionsLength(w http.ResponseWriter, r *http.Request) {
 
 //GetInternalTransactions gets internal txs
 func GetInternalTransactionsByHash(w http.ResponseWriter, r *http.Request) {
+	dbase := db.ConnectShyftDatabase()
+
 	vars := mux.Vars(r)
 	txHash := vars["txHash"]
 	currentPage := vars["currentPage"]
@@ -281,7 +309,7 @@ func GetInternalTransactionsByHash(w http.ResponseWriter, r *http.Request) {
 	page, err := strconv.ParseInt(currentPage, 10, 64)
 	limit, err := strconv.ParseInt(pageLimit, 10, 64)
 
-	internalTxs, err := db.SGetInternalTransaction(page, limit, txHash)
+	transactions, err := tx.InternalTransactionArrayQuery(dbase, db.GetInternalTransaction, page, limit, txHash)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -290,11 +318,13 @@ func GetInternalTransactionsByHash(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
-	fmt.Fprintln(w, internalTxs)
+	fmt.Fprintln(w, string(transactions))
 }
 
 //GetInternalTransactionsHash gets internal txs hash
 func GetInternalTransactions(w http.ResponseWriter, r *http.Request) {
+	dbase := db.ConnectShyftDatabase()
+
 	vars := mux.Vars(r)
 	currentPage := vars["currentPage"]
 	pageLimit := vars["pageLimit"]
@@ -302,7 +332,7 @@ func GetInternalTransactions(w http.ResponseWriter, r *http.Request) {
 	page, err := strconv.ParseInt(currentPage, 10, 64)
 	limit, err := strconv.ParseInt(pageLimit, 10, 64)
 
-	internalTxs, err := db.SGetAllInternalTransactions(page, limit)
+	transactions, err := tx.InternalTransactionArrayQuery(dbase, db.GetAllInternalTransactions, page, limit, "")
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -310,7 +340,7 @@ func GetInternalTransactions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
-	fmt.Fprintln(w, internalTxs)
+	fmt.Fprintln(w, string(transactions))
 }
 
 func BroadcastTx(w http.ResponseWriter, r *http.Request) {

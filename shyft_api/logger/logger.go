@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"fmt"
 )
 
 //Logger logs responses to terminal
@@ -23,3 +24,14 @@ func Logger(inner http.Handler, name string) http.Handler {
 		)
 	})
 }
+
+func Log(msg string) {
+	log.Println("INFO - ", msg)
+}
+
+func Warn(msg string) {
+	log.Println("---------------------------")
+	log.Println(fmt.Sprintf("WARN: %s", msg))
+	log.Println("---------------------------")
+}
+

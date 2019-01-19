@@ -11,7 +11,6 @@ import (
 var blockExplorerDb *sqlx.DB
 
 const (
-	defaultDb      = "shyftdb"
 	connStrDocker  = "user=postgres host=pg password=docker sslmode=disable"
 	connStrDefault = "user=postgres host=localhost sslmode=disable"
 )

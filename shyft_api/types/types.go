@@ -2,97 +2,76 @@ package types
 
 import "time"
 
-//SBlock type
-type SBlock struct {
-	Hash       string
-	Coinbase   string
-	Age        time.Time
-	ParentHash string
-	UncleHash  string
-	Difficulty string
-	Size       string
-	Rewards    string
-	Number     string
-	GasUsed    uint64
-	GasLimit   uint64
-	Nonce      uint64
-	TxCount    int
-	UncleCount int
-	Blocks     []SBlock
+type BlockPayload struct {
+	Payload []Block			`json:"data"`
 }
 
-type InteralWrite struct {
-	ID        int
-	Hash      string
-	BlockHash string
-	Action    string
-	From      string
-	To        string
-	Value     string
-	Gas       uint64
-	GasUsed   uint64
-	Input     string
-	Output    string
-	Time      string
+type Block struct {
+	Hash       string 		`json:"block_hash"`
+	Coinbase   string 		`json:"coinbase_hash"`
+	Age        time.Time	`json:"block_timestamp"`
+	ParentHash string		`json:"block_parenthash"`
+	UncleHash  string		`json:"block_unclehash"`
+	Difficulty string		`json:"block_difficulty"`
+	Size       string		`json:"block_size"`
+	Rewards    string		`json:"block_rewards"`
+	Number     string		`json:"block_height"`
+	GasUsed    uint64		`json:"block_gas"`
+	GasLimit   uint64		`json:"block_gaslimit"`
+	Nonce      uint64		`json:"block_nonce"`
+	TxCount    int			`json:"block_txs"`
+	UncleCount int			`json:"block_uncles"`
 }
 
-type InternalArray struct {
-	InternalEntry []InteralWrite
+type TransactionPayload struct {
+	Payload []Transaction
 }
 
-//blockRes struct
-type BlockRes struct {
-	hash     string
-	coinbase string
-	number   string
-	Blocks   []SBlock
+type Transaction struct {
+	TxHash      string		`json:"tx_hash"`
+	To_addr     string		`json:"to_address"`
+	From_addr   string		`json:"from_address"`
+	BlockHash   string		`json:"block_hash"`
+	BlockNumber string		`json:"block_height"`
+	Amount      string		`json:"tx_amount"`
+	GasPrice    uint64		`json:"gas_price"`
+	Gas         uint64		`json:"tx_gas"`
+	GasLimit    uint64		`json:"gas_limit"`
+	TxFee       string		`json:"tx_cost"`
+	Nonce       uint64		`json:"tx_nonce"`
+	TxStatus    string		`json:"tx_status"`
+	IsContract  bool		`json:"is_contract"`
+	Age         time.Time	`json:"tx_timestamp"`
+	Data        []byte		`json:"tx_data"`
 }
 
-type BlockHash struct {
-	Hash string
+type AccountPayload struct {
+	Payload []Account
 }
 
-type SAccounts struct {
-	Addr         string
-	Balance      string
-	AccountNonce string
+type Account struct {
+	Addr         string		`json:"address"`
+	Balance      string		`json:"balance"`
+	Nonce		 string		`json:"nonce"`
 }
 
-type AccountRes struct {
-	addr        string
-	balance     string
-	AllAccounts []SAccounts
+type InternalTransactionPayload struct {
+	Payload []InteralTransaction
 }
 
-type TxRes struct {
-	TxEntry []ShyftTxEntryPretty
-}
-
-type ShyftTxEntryPretty struct {
-	TxHash      string
-	To          string
-	From        string
-	BlockHash   string
-	BlockNumber string
-	Amount      string
-	GasPrice    uint64
-	Gas         uint64
-	GasLimit    uint64
-	Cost        string
-	Nonce       uint64
-	Status      string
-	IsContract  bool
-	Age         time.Time
-	Data        []byte
-}
-
-type SendAndReceive struct {
-	To           string
-	From         string
-	Amount       string
-	Address      string
-	Balance      string
-	AccountNonce uint64 `json:",string"`
+type InteralTransaction struct {
+	ID        int		`json:"internal_id"`
+	Hash      string	`json:"tx_hash"`
+	BlockHash string	`json:"block_hash"`
+	Action    string	`json:"internal_action"`
+	From      string	`json:"from_address"`
+	To        string	`json:"to_address"`
+	Value     string	`json:"tx_amount"`
+	Gas       uint64	`json:"internal_gas"`
+	GasUsed   uint64	`json:"gas_used"`
+	Input     string	`json:"internal_input"`
+	Output    string	`json:"internal_output"`
+	Time      string	`json:"internal_time"`
 }
 
 // AccountBlock - struct for reading and writing database data
