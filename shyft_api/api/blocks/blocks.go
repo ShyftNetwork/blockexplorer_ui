@@ -104,3 +104,18 @@ func BlockQueries(db *db.SPGDatabase, query string, identifier string) ([]byte, 
 	}
 }
 
+// RecordCountQuery returns count of records in specified table
+func RecordCountQuery(db *db.SPGDatabase, query string) []byte {
+	row := db.Db.QueryRowx(query)
+
+	count := types.RecordCount{}
+	if err := row.StructScan(&count); err != nil {
+		logger.Warn("Unable to scan row into struct: " + err.Error())
+	}
+	serializedPayload, err := json.Marshal(count)
+	if err != nil {
+		logger.Warn("Unable to serialize row: " + err.Error())
+	}
+	return serializedPayload
+}
+

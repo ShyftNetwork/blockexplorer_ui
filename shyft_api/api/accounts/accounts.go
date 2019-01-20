@@ -36,14 +36,15 @@ func AccountArrayMarshalling(rows *sqlx.Rows) []byte {
 }
 
 // AccountArrayQueries queries db
-func AccountArrayQueries(db *db.SPGDatabase, query string, currentPage int64, pageLimit int64, identifier string) []byte {
+func AccountArrayQueries(db *db.SPGDatabase, query string, currentPage int64, pageLimit int64, identifier string) ([]byte, error) {
 	var offset = (currentPage - 1) * pageLimit
 	rows, err := db.Db.Queryx(query, pageLimit, offset)
 	if err != nil {
 		logger.Warn("Unable to connect: " + err.Error())
+		return nil, err
 	}
 	accounts := AccountArrayMarshalling(rows)
-	return accounts
+	return accounts, nil
 }
 
 // AccountMarshalling marshalls bytes to struct

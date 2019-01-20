@@ -14,6 +14,7 @@ type Route struct {
 //Routes routes
 type Routes []Route
 
+// Endpoints outline all endpoints for api calls
 var Endpoints = Routes{
 	Route{
 		"GetAllAccountLength",

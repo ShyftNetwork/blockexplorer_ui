@@ -2,10 +2,12 @@ package types
 
 import "time"
 
+// BlockPayload returns slice of Block type
 type BlockPayload struct {
 	Payload []Block			`json:"data"`
 }
 
+// Block returns Block struct
 type Block struct {
 	Hash       string 		`json:"block_hash"`
 	Coinbase   string 		`json:"coinbase_hash"`
@@ -23,10 +25,12 @@ type Block struct {
 	UncleCount int			`json:"block_uncles"`
 }
 
+// TransactionPayload returns slice of Transaction type
 type TransactionPayload struct {
 	Payload []Transaction
 }
 
+// Transaction returns Transaction struct
 type Transaction struct {
 	TxHash      string		`json:"tx_hash"`
 	To_addr     string		`json:"to_address"`
@@ -45,20 +49,24 @@ type Transaction struct {
 	Data        []byte		`json:"tx_data"`
 }
 
+// AccountPayload returns slice of Account struct
 type AccountPayload struct {
 	Payload []Account
 }
 
+// Account returns account struct
 type Account struct {
 	Addr         string		`json:"address"`
 	Balance      string		`json:"balance"`
 	Nonce		 string		`json:"nonce"`
 }
 
+// InternalTransactionPayload returns slice of InternalTransactionPayload struct
 type InternalTransactionPayload struct {
 	Payload []InteralTransaction
 }
 
+// InteralTransaction returns InteralTransactions struct
 type InteralTransaction struct {
 	ID        int		`json:"internal_id"`
 	Hash      string	`json:"tx_hash"`
@@ -82,6 +90,12 @@ type AccountBlock struct {
 	TxCount   int64  `db:"txcount"`
 }
 
+// AccountBlockArray returns slice of AccountBlock
 type AccountBlockArray struct {
 	AccountBlocks []AccountBlock
+}
+
+// RecordCount returns int Count type
+type RecordCount struct {
+	Count int 	`json:"page_count"`
 }

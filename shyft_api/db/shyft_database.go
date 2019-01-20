@@ -2,10 +2,10 @@ package db
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/ShyftNetwork/blockexplorer_ui/shyft_api/logger"
 )
 
 var blockExplorerDb *sqlx.DB
@@ -53,22 +53,31 @@ func Connect(connectURL string) *sqlx.DB {
 // NewShyftDatabase returns a PostgresDB wrapped object.
 func NewShyftDatabase() (*SPGDatabase, error) {
 	if blockExplorerDb == nil {
-		log.Printf("DB Connected !!")
+		logger.Log("DB Connected !!")
 		blockExplorerDb = Connect(ShyftConnectStr())
 		conn := blockExplorerDb
-		conn.Ping()
+		if err := conn.Ping(); err != nil {
+			logger.Warn("Database error: " + err.Error())
+		}
 		return &SPGDatabase{
 			Db: conn,
 		}, nil
 	}
 	conn := blockExplorerDb
-	conn.Ping()
+	if err := conn.Ping(); err != nil {
+		logger.Warn("Database error: " + err.Error())
+	}
 	return &SPGDatabase{
 		Db: conn,
 	}, nil
 }
 
-// ReturnShyftDatabase returns a PostgresDB wrapped object.
-func ReturnShyftDatabase() (*SPGDatabase, error) {
-	return NewShyftDatabase()
+// ConnectShyftDatabase returns database of type *SPGDatabase
+func ConnectShyftDatabase() *SPGDatabase {
+	db, err := NewShyftDatabase()
+	if err != nil {
+		logger.Warn("Unable to connect to database: " + err.Error())
+		return nil
+	}
+	return db
 }

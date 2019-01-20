@@ -16,7 +16,7 @@ func main() {
 
 	router := NewRouter()
 	port := "8080"
-	log.Printf("Listening on port " + " " + port)
+	logger.Log("Listening on port " + " " + port)
 	log.Fatal(http.ListenAndServe(":"+port, handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(router)))
 }
 

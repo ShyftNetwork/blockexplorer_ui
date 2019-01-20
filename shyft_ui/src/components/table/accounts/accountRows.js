@@ -39,9 +39,7 @@ class AccountTable extends Component {
 }
 
 onPageChanged = async(data) => {
-    const { currentPage, totalPages, pageLimit } = data;
-
-    const offset = (currentPage - 1) * pageLimit;
+    const { currentPage, pageLimit } = data;
 
     try {
         const response = await axios.get(`${API_URL}/get_all_accounts/${currentPage}/${pageLimit}`);
@@ -57,6 +55,7 @@ onPageChanged = async(data) => {
 };
 
     render() {
+        console.log("ACCOUNTS:: ",this.state.data)
         let startNum = 1;
         let table;    
         if(this.state.emptyDataSet === false && this.state.data.length > 0  ) {

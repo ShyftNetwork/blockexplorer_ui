@@ -56,6 +56,7 @@ class BlocksTable extends Component {
     };
 
     render() {
+        console.log("blocks:: ",this.state.data)
         let table;
         
         if(this.state.emptyDataSet === false && this.state.data.length > 0  ) {

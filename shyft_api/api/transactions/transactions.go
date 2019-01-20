@@ -31,6 +31,7 @@ func TransactionArrayMarshalling(rows *sqlx.Rows) []byte {
 	if err := rows.Close(); err != nil {
 		logger.Warn("Unable to close row connection: " + err.Error())
 	}
+
 	return txs
 }
 
