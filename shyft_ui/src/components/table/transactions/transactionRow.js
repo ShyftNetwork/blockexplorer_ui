@@ -3,7 +3,6 @@ import TransactionsTable from './transactionTable';
 import Pagination from '../pagination/pagination';
 import classes from './table.css';
 import axios from "axios";
-import ErrorMessage from './errorMessage';
 import Loading from '../../UI materials/loading'
 import {API_URL} from "../../../constants/apiURL";
 
@@ -29,7 +28,6 @@ class TransactionTable extends Component {
                 } else {
                     this.setState({emptyDataSet: false})
                 }
-                console.log("data", response.data)
                 await this.setState({data: response.data});
             } catch (err) {
                 console.log(err);
@@ -40,7 +38,7 @@ class TransactionTable extends Component {
     }
 
     onPageChanged = async(data) => {
-        const { currentPage, totalPages, pageLimit } = data;
+        const { currentPage, pageLimit } = data;
 
         try {
             const response = await axios.get(`${API_URL}/get_all_transactions/${currentPage}/${pageLimit}`);
@@ -59,15 +57,15 @@ class TransactionTable extends Component {
         let table;
         if(this.state.emptyDataSet === false && this.state.data.length > 0  ) {
             table = this.state.data.map((data, i) => {
-                const conversion = data.Cost / 10000000000000000000;
+                const conversion = data.tx_amount / 10000000000000000000;
                 return <TransactionsTable
-                    key={`${data.TxHash}${i}`}
-                    age={data.Age}
-                    txHash={data.TxHash}
-                    blockNumber={data.BlockNumber}
-                    to={data.ToGet}
-                    from={data.From}
-                    value={data.Amount}
+                    key={`${data.tx_hash}${i}`}
+                    age={data.tx_timestamp}
+                    txHash={data.tx_hash}
+                    blockNumber={data.block_height}
+                    to={data.to_address}
+                    from={data.from_address}
+                    value={data.tx_amount}
                     cost={conversion}
                     getBlockTransactions={this.props.getBlockTransactions}
                     detailTransactionHandler={this.props.detailTransactionHandler}
@@ -81,7 +79,7 @@ class TransactionTable extends Component {
             <div>     
                 {
                     this.state.emptyDataSet === false && this.state.data.length > 0 ?  
-                        <table key={this.state.data.TxHash} className={combinedClasses.join(' ')}>
+                        <table key={this.state.data.tx_hash} className={combinedClasses.join(' ')}>
                             <thead>
                                 <tr>
                                     <th scope="col" className={classes.thItem}> TxHash </th>

@@ -71,8 +71,10 @@ class App extends Component {
 
 
     detailAccountHandler = async(addr) => {
+        let pageLimit= 25;
+        let currentPage = 1;
         try {
-            const response = await axios.get(`${API_URL}/get_account_txs/${addr}`);
+            const response = await axios.get(`${API_URL}/get_account_txs/${currentPage}/${pageLimit}/${addr}`);
             await this.setState({ accountDetailData: response.data, reqAccount: addr, overlayTriggered: false, overlayContent: "account"  })
         }
         catch(error) {
@@ -81,8 +83,10 @@ class App extends Component {
     };
 
     detailInternalHandler = async(txHash) => {
+        let pageLimit= 25;
+        let currentPage = 1;
         try {
-            const response = await axios.get(`${API_URL}/get_internal_transactions/${txHash}`);
+            const response = await axios.get(`${API_URL}/get_internal_transactions/${currentPage}/${pageLimit}/${txHash}`);
             await this.setState({ internalDetailData: response.data, reqAccount: txHash, overlayTriggered: true, overlayContent: "internal" })
         }
         catch(error) {
@@ -91,8 +95,10 @@ class App extends Component {
     };
 
     getInternalTransactions = async() => {
+        let pageLimit= 25;
+        let currentPage = 1;
         try {
-            const response = await axios.get(`${API_URL}/get_internal_transactions/`);
+            const response = await axios.get(`${API_URL}/get_internal_transactions/${currentPage}/${pageLimit}`);
             await this.setState({ internalTransactions: response.data,  overlayTriggered: false })
         }
         catch(error) {
@@ -112,8 +118,10 @@ class App extends Component {
     };
 
     getBlockTransactions = async(blockNumber) => {
+        let pageLimit= 25;
+        let currentPage = 1;
         try {
-            const response = await axios.get(`${API_URL}/get_all_transactions_from_block/${blockNumber}`);
+            const response = await axios.get(`${API_URL}/get_all_transactions_from_block/${currentPage}/${pageLimit}/${blockNumber}`);
             await this.setState({ blockTransactions: response.data, reqBlockNum: blockNumber })
         }
         catch(error) {
@@ -122,8 +130,10 @@ class App extends Component {
     };
 
     getBlocksMined = async(coinbase) => {
+        let pageLimit= 25;
+        let currentPage = 1;
         try {
-            const response = await axios.get(`${API_URL}/get_blocks_mined/${coinbase}`);
+            const response = await axios.get(`${API_URL}/get_blocks_mined/${currentPage}/${pageLimit}/${coinbase}`);
             await this.setState({ blocksMined: response.data, reqCoinbase: coinbase })
         }
         catch(error) {

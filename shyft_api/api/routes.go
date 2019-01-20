@@ -1,4 +1,4 @@
-package main
+package api
 
 //@NOTE Shyft setting up endpoints
 import "net/http"
@@ -14,7 +14,8 @@ type Route struct {
 //Routes routes
 type Routes []Route
 
-var routes = Routes{
+// Endpoints outline all endpoints for api calls
+var Endpoints = Routes{
 	Route{
 		"GetAllAccountLength",
 		"GET",
@@ -30,7 +31,7 @@ var routes = Routes{
 	Route{
 		"GetAccountTxs",
 		"GET",
-		"/api/get_account_txs//{currentPage}/{pageLimit}/{address}",
+		"/api/get_account_txs/{currentPage}/{pageLimit}/{address}",
 		GetAccountTxs,
 	},
 	Route{

@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import BlockTable from './blockTable';
-import ErrorMessage from './errorMessage';
 import Loading from '../../UI materials/loading'
 import Pagination from '../pagination/pagination';
 import classes from './table.css';
@@ -40,7 +39,7 @@ class BlocksTable extends Component {
     }
 
     onPageChanged = async(data) => {
-        const { currentPage, totalPages, pageLimit } = data;
+        const { currentPage, pageLimit } = data;
 
         try {
             const response = await axios.get(`${API_URL}/get_all_blocks/${currentPage}/${pageLimit}`);
@@ -57,20 +56,19 @@ class BlocksTable extends Component {
 
     render() {
         let table;
-        
         if(this.state.emptyDataSet === false && this.state.data.length > 0  ) {
             table = this.state.data.map((data, i) => {
-                const conversion = data.Rewards / 10000000000000000000;
+                const conversion = data.block_rewards / 10000000000000000000;
                 return <BlockTable
-                    key={`${data.TxHash}${i}`}
-                    Hash={data.Hash}
-                    Number={data.Number}
-                    Coinbase={data.Coinbase}
-                    AgeGet={data.Age}
-                    GasUsed={data.GasUsed}
-                    GasLimit={data.GasLimit}
-                    UncleCount={data.UncleCount}
-                    TxCount={data.TxCount}
+                    key={`${data.block_hash}${i}`}
+                    Hash={data.block_hash}
+                    Number={data.block_height}
+                    Coinbase={data.coinbase_hash}
+                    AgeGet={data.block_timestamp}
+                    GasUsed={data.block_gas}
+                    GasLimit={data.block_gaslimit}
+                    UncleCount={data.block_uncles}
+                    TxCount={data.block_txs}
                     Reward={conversion}
                     detailBlockHandler={this.props.detailBlockHandler}
                     getBlocksMined={this.props.getBlocksMined}
