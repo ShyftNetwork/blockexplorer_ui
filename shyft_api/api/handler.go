@@ -10,7 +10,6 @@ import (
 	"strconv"
 
 	"github.com/ShyftNetwork/blockexplorer_ui/shyft_api/db"
-	_ "github.com/lib/pq"
 
 	"github.com/gorilla/mux"
 	b "github.com/ShyftNetwork/blockexplorer_ui/shyft_api/api/blocks"
@@ -18,7 +17,7 @@ import (
 	acc "github.com/ShyftNetwork/blockexplorer_ui/shyft_api/api/accounts"
 )
 
-// Count all rows in Blocks Table
+// SGetAllTransactionsLength Count all rows in Blocks Table
 func SGetAllTransactionsLength(w http.ResponseWriter, r *http.Request) {
 	dbase := db.ConnectShyftDatabase()
 
@@ -29,7 +28,7 @@ func SGetAllTransactionsLength(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, count)
 }
 
-// GetAllBlocks response
+// GetAllTransactionsWithoutLimit returns all rows in Blocks Table
 func GetAllTransactionsWithoutLimit(w http.ResponseWriter, r *http.Request) {
 	dbase := db.ConnectShyftDatabase()
 
@@ -85,6 +84,7 @@ func GetAllTransactions(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, string(txs))
 }
 
+// GetAllTransactionsFromBlock returns all txs from specified block
 func GetAllTransactionsFromBlock(w http.ResponseWriter, r *http.Request) {
 	dbase := db.ConnectShyftDatabase()
 
@@ -108,6 +108,7 @@ func GetAllTransactionsFromBlock(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, string(transactions))
 }
 
+// GetAllBlocksMinedByAddress returns all blocks mined by specific address
 func GetAllBlocksMinedByAddress(w http.ResponseWriter, r *http.Request) {
 	dbase := db.ConnectShyftDatabase()
 
@@ -131,7 +132,7 @@ func GetAllBlocksMinedByAddress(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, string(blocks))
 }
 
-// Count all rows in Blocks Table
+// SGetAllAccountsLength Count all rows in accounts Table
 func SGetAllAccountsLength(w http.ResponseWriter, r *http.Request) {
 	dbase := db.ConnectShyftDatabase()
 
@@ -142,7 +143,7 @@ func SGetAllAccountsLength(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, count)
 }
 
-// GetAccount gets balance
+// GetAccount returns specific account data; balance, nonce
 func GetAccount(w http.ResponseWriter, r *http.Request) {
 	dbase := db.ConnectShyftDatabase()
 
@@ -162,7 +163,7 @@ func GetAccount(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, string(account))
 }
 
-// GetAccount gets balance
+// GetAccountTxs returns account txs
 func GetAccountTxs(w http.ResponseWriter, r *http.Request) {
 	dbase := db.ConnectShyftDatabase()
 
@@ -186,7 +187,7 @@ func GetAccountTxs(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, string(transactions))
 }
 
-// GetAllAccounts gets balances
+// GetAllAccounts returns all accounts
 func GetAllAccounts(w http.ResponseWriter, r *http.Request) {
 	dbase := db.ConnectShyftDatabase()
 
@@ -207,7 +208,7 @@ func GetAllAccounts(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, string(accounts))
 }
 
-//GetBlock returns block json
+//GetBlock returns contextual block data
 func GetBlock(w http.ResponseWriter, r *http.Request) {
 	dbase := db.ConnectShyftDatabase()
 
@@ -227,7 +228,7 @@ func GetBlock(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, string(block))
 }
 
-// GetAllBlocks response
+// GetAllBlocksWithoutLimit returns all blocks in table
 func GetAllBlocksWithoutLimit(w http.ResponseWriter, r *http.Request) {
 	dbase := db.ConnectShyftDatabase()
 
@@ -242,7 +243,7 @@ func GetAllBlocksWithoutLimit(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, string(blocks))
 }
 
-// Count all rows in Blocks Table
+// SGetAllBlocksLength Count all rows in Blocks Table
 func SGetAllBlocksLength(w http.ResponseWriter, r *http.Request) {
 	dbase := db.ConnectShyftDatabase()
 
@@ -253,6 +254,7 @@ func SGetAllBlocksLength(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, count)
 }
 
+// GetAllBlocks returns all blocks
 func GetAllBlocks(w http.ResponseWriter, r *http.Request) {
 	dbase := db.ConnectShyftDatabase()
 
@@ -273,6 +275,7 @@ func GetAllBlocks(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, string(blocks))
 }
 
+// GetRecentBlock returns most recent block height
 func GetRecentBlock(w http.ResponseWriter, r *http.Request) {
 	dbase := db.ConnectShyftDatabase()
 
@@ -287,7 +290,7 @@ func GetRecentBlock(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, string(block))
 }
 
-// Count all rows in Blocks Table
+// SGetAllInternalTransactionsLength Count all rows in Blocks Table
 func SGetAllInternalTransactionsLength(w http.ResponseWriter, r *http.Request) {
 	dbase := db.ConnectShyftDatabase()
 
@@ -297,7 +300,7 @@ func SGetAllInternalTransactionsLength(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, count)
 }
 
-//GetInternalTransactions gets internal txs
+//GetInternalTransactionsByHash gets internal txs specified by hash
 func GetInternalTransactionsByHash(w http.ResponseWriter, r *http.Request) {
 	dbase := db.ConnectShyftDatabase()
 
@@ -321,7 +324,7 @@ func GetInternalTransactionsByHash(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, string(transactions))
 }
 
-//GetInternalTransactionsHash gets internal txs hash
+//GetInternalTransactions gets internal txs
 func GetInternalTransactions(w http.ResponseWriter, r *http.Request) {
 	dbase := db.ConnectShyftDatabase()
 
@@ -343,6 +346,7 @@ func GetInternalTransactions(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, string(transactions))
 }
 
+// BroadcastTx broadcasts tx
 func BroadcastTx(w http.ResponseWriter, r *http.Request) {
 	// Example return result (returns tx hash):
 	// {"jsonrpc":"2.0","id":1,"result":"0xafa4c62f29dbf16bbfac4eea7cbd001a9aa95c59974043a17f863172f8208029"}

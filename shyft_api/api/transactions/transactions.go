@@ -1,32 +1,40 @@
 package transactions
 
 import (
+	"encoding/json"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/ShyftNetwork/blockexplorer_ui/shyft_api/types"
-	"encoding/json"
 	"github.com/ShyftNetwork/blockexplorer_ui/shyft_api/logger"
 	"github.com/ShyftNetwork/blockexplorer_ui/shyft_api/db"
 )
 
-func TransactionArrayMarshalling(rows *sqlx.Rows) ([]byte, error) {
+// TransactionArrayMarshalling marshalls into tx struct
+func TransactionArrayMarshalling(rows *sqlx.Rows) []byte {
 	var t types.TransactionPayload
 	var txs []byte
 
-	defer rows.Close()
 	for rows.Next() {
 		tx := types.Transaction{}
 		err := rows.StructScan(&tx)
 		if err != nil {
 			logger.Warn("Unable to retrieve rows: " + err.Error())
-			return nil, err
+			return nil
 		}
 		t.Payload = append(t.Payload, tx)
 		serializedPayload, err := json.Marshal(t.Payload)
+		if err != nil {
+			logger.Warn("Unable to serialize payload: " + err.Error())
+		}
 		txs = serializedPayload
 	}
-	return txs, nil
+	if err := rows.Close(); err != nil {
+		logger.Warn("Unable to close row connection: " + err.Error())
+	}
+	return txs
 }
 
+// TransactionArrayQueries queries db
 func TransactionArrayQueries(db *db.SPGDatabase, query string, currentPage int64, pageLimit int64, identifier string) ([]byte, error) {
 	switch {
 	case len(identifier) > 0 && currentPage > 0:
@@ -36,7 +44,7 @@ func TransactionArrayQueries(db *db.SPGDatabase, query string, currentPage int64
 			logger.Warn("Unable to query: " + err.Error())
 			return nil, err
 		}
-		txs, _ := TransactionArrayMarshalling(rows)
+		txs := TransactionArrayMarshalling(rows)
 		return txs, nil
 	case currentPage > 0:
 		var offset = (currentPage - 1) * pageLimit
@@ -45,7 +53,7 @@ func TransactionArrayQueries(db *db.SPGDatabase, query string, currentPage int64
 			logger.Warn("Unable to query: " + err.Error())
 			return nil, err
 		}
-		txs, _ := TransactionArrayMarshalling(rows)
+		txs := TransactionArrayMarshalling(rows)
 		return txs, nil
 	default:
 		rows, err := db.Db.Queryx(query)
@@ -53,39 +61,37 @@ func TransactionArrayQueries(db *db.SPGDatabase, query string, currentPage int64
 			logger.Warn("Unable to query: " + err.Error())
 			return nil, err
 		}
-		txs, _ := TransactionArrayMarshalling(rows)
+		txs := TransactionArrayMarshalling(rows)
 		return txs, nil
 	}
 }
 
-func TransactionMarshalling(row *sqlx.Row) ([]byte, error) {
+// TransactionMarshalling marshalls into tx struct
+func TransactionMarshalling(row *sqlx.Row) []byte {
 	tx := types.Transaction{}
 	err := row.StructScan(&tx)
 	if err != nil {
 		logger.Warn("Unable to retrieve row: " + err.Error())
-		return nil, err
+		return nil
 	}
 	serializedPayload, err := json.Marshal(tx)
-	return serializedPayload, nil
+	if err != nil {
+		logger.Warn("Unable to serialize payload: " + err.Error())
+	}
+	return serializedPayload
 }
 
+// TransactionQuery queries db
 func TransactionQuery(db *db.SPGDatabase, query string, identifier string) ([]byte, error) {
-	tx, _ := db.Db.Begin()
 	row := db.Db.QueryRowx(query, identifier)
-	tx.Commit()
-	transaction, err := TransactionMarshalling(row)
-	if err != nil {
-		return nil, err
-	}
-
+	transaction := TransactionMarshalling(row)
 	return transaction, nil
 }
 
+// InternalTransactionArrayMarshalling marshalls into internaltx struct
 func InternalTransactionArrayMarshalling(rows *sqlx.Rows) []byte {
 	var i types.InternalTransactionPayload
 	var internals []byte
-
-	defer rows.Close()
 
 	for rows.Next() {
 		internal := types.InteralTransaction{}
@@ -95,16 +101,21 @@ func InternalTransactionArrayMarshalling(rows *sqlx.Rows) []byte {
 		}
 		i.Payload = append(i.Payload, internal)
 		serializedPayload, err := json.Marshal(i.Payload)
+		if err != nil {
+			logger.Warn("Unable to serialize payload: " + err.Error())
+		}
 		internals = serializedPayload
+	}
+	if err := rows.Close(); err != nil {
+		logger.Warn("Unable to close row connection: " + err.Error())
 	}
 	return internals
 }
 
+// InternalTransactionArrayQuery queries db
 func InternalTransactionArrayQuery(db *db.SPGDatabase, query string, currentPage int64, pageLimit int64, identifer string) ([]byte, error) {
 	var offset = (currentPage - 1) * pageLimit
-	tx, _ := db.Db.Begin()
 	rows, err := db.Db.Queryx(query, pageLimit, offset, identifer)
-	tx.Commit()
 	if err != nil {
 		logger.Warn("Unable to query: " + err.Error())
 		return nil, err
