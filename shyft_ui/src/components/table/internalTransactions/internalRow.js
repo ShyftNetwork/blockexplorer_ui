@@ -43,18 +43,18 @@ class InternalTransactionsTable extends Component {
         if(this.state.emptyDataSet === false && this.state.data.length > 0  ) {
             table = this.state.data.map((data, i) => {              
                 return <InternalTable
-                    key={`${data.TxHash}${i}`}
-                    Hash={data.Hash}
-                    Action={data.Action}
-                    To={data.To}
-                    From= {data.From}
-                    Gas={data.Gas}
-                    GasUsed={data.GasUsed}
-                    ID={data.ID}
-                    Input={data.Input}
-                    Output={data.Output}
-                    Time={data.Time}
-                    Value={data.Value}    
+                    key={`${data.tx_hash}${i}`}
+                    Hash={data.tx_hash}
+                    Action={data.internal_action}
+                    To={data.to_address}
+                    From= {data.from_address}
+                    Gas={data.internal_gas}
+                    GasUsed={data.gas_used}
+                    ID={data.internal_id}
+                    Input={data.internal_input}
+                    Output={data.internal_output}
+                    Time={data.internal_time}
+                    Value={data.tx_amount}
                     detailInternalHandler={this.props.detailInternalHandler}            
                 />
             });

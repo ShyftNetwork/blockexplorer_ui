@@ -55,25 +55,24 @@ onPageChanged = async(data) => {
 };
 
     render() {
-        console.log("ACCOUNTS:: ",this.state.data)
         let startNum = 1;
         let table;    
         if(this.state.emptyDataSet === false && this.state.data.length > 0  ) {
         const sorted = [...this.state.data];
-        sorted.sort((a, b) => Number(a.Balance) > Number(b.Balance)); 
+        sorted.sort((a, b) => Number(a.balance) > Number(b.balance));
         table = sorted.reverse().map((data, i) => {
-            const conversion = Number(data.Balance) / 10000000000000000000;
+            const conversion = Number(data.balance) / 10000000000000000000;
             const total = sorted
-                .map(num => Number(num.Balance) / 10000000000000000000)
+                .map(num => Number(num.balance) / 10000000000000000000)
                 .reduce((acc, cur) => acc + cur ,0);
             const percentage = ( (conversion / total) *100);
             return <AccountsTable
-                key={`${data.addr}${i}`}
+                key={`${data.address}${i}`}
                 Rank={startNum++}
                 Percentage={percentage.toFixed(2)}
-                Addr={data.Addr}
+                Addr={data.address}
                 Balance={conversion}
-                AccountNonce={data.AccountNonce}
+                AccountNonce={data.nonce}
                 detailAccountHandler={this.props.detailAccountHandler}
             />
         });

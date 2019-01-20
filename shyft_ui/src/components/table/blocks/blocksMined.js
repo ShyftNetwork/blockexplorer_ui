@@ -13,17 +13,17 @@ class BlocksMinedTable extends Component {
 
     render() {
         const table = this.props.data.map((data, i) => {
-            const conversion = data.Rewards / 10000000000000000000;
+            const conversion = data.block_rewards / 10000000000000000000;
             return <MinedBlockTable
-                key={`${data.Hash}${i}`}
-                Hash={data.Hash}
-                Number={data.Number}
-                Coinbase={data.Coinbase}
-                AgeGet={data.AgeGet}
-                GasUsed={data.GasUsed}
-                GasLimit={data.GasLimit}
-                UncleCount={data.UncleCount}
-                TxCount={data.TxCount}
+                key={`${data.block_hash}${i}`}
+                Hash={data.block_hash}
+                Number={data.block_height}
+                Coinbase={data.coinbase_hash}
+                AgeGet={data.block_timestamp}
+                GasUsed={data.block_gas}
+                GasLimit={data.block_gaslimit}
+                UncleCount={data.block_uncles}
+                TxCount={data.block_txs}
                 Reward={conversion}
                 detailBlockHandler={this.props.detailBlockHandler}
                 getBlocksMined={this.props.getBlocksMined}
