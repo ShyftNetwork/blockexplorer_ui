@@ -45,3 +45,6 @@ const GetAccount = `SELECT * FROM accounts WHERE addr=$1;`
 const GetAccountTransactions = `SELECT * FROM txs WHERE to_addr=$3 OR from_addr=$3 ORDER BY age ASC LIMIT $1 OFFSET $2;`
 // GetAllAccountBlocks returns all account blocks
 const GetAllAccountBlocks = `SELECT * FROM accountblocks`
+
+// SearchQuery returns all relevant data based on specified search
+const SearchQuery = `SELECT * FROM txs WHERE to_addr=$1 OR from_addr=$1 OR blockhash=$1 OR txhash=$1`

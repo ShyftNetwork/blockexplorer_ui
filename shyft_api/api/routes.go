@@ -130,4 +130,10 @@ var Endpoints = Routes{
 		"/api/broadcast_tx/{transaction_hash}",
 		BroadcastTx,
 	},
+	Route{
+		"GetSearchQuery",
+		"GET",
+		"/api/search/{query}",
+		GetSearchQuery,
+	},
 }

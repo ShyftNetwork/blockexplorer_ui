@@ -338,6 +338,19 @@ func GetInternalTransactions(w http.ResponseWriter, r *http.Request) {
 	logger.WriteLogger(w.Write(transactions))
 }
 
+// SGetAllInternalTransactionsLength Count all rows in Blocks Table
+func GetSearchQuery(w http.ResponseWriter, r *http.Request) {
+	//dbase := db.ConnectShyftDatabase()
+	vars := mux.Vars(r)
+	query := vars["query"]
+	//count := b.RecordCountQuery(dbase, db.GetInternalTransactionLength)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	fmt.Println("worked", query)
+	fmt.Fprintf(w, "worked")
+	//logger.WriteLogger(w.Write(count))
+}
+
 // BroadcastTx broadcasts tx
 func BroadcastTx(w http.ResponseWriter, r *http.Request) {
 	// Example return result (returns tx hash):
