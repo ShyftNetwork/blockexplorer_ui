@@ -98,7 +98,7 @@ class BlocksTable extends Component {
                                 </thead>
                                 {table}
                                 <div id={classes.pages}>
-                                    <Pagination totalRecords={this.state.totalRecords} pageLimit={25} pageNeighbours={1} onPageChanged={this.onPageChanged} />
+                                    <Pagination totalRecords={this.state.totalRecords.page_count} pageLimit={25} pageNeighbours={1} onPageChanged={this.onPageChanged} />
                                 </div>
                             </table>
                     : <Loading>Blocks</Loading>

@@ -3,3 +3,9 @@
     padding-left: 20px;
     background-color: #222222;
 }
+
+#background {
+    background-color: #4f2e7e;
+    border-color: #000;
+    border-width: 1px;
+}

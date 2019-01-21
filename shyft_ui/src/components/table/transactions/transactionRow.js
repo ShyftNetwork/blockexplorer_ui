@@ -20,6 +20,7 @@ class TransactionTable extends Component {
         let currentPage = 1;
         try {
             const response = await axios.get(`${API_URL}/get_all_transactions_length`);
+            console.log(response.data)
             await this.setState({totalRecords: response.data});
             try {
                 const response = await axios.get(`${API_URL}/get_all_transactions/${currentPage}/${pageLimit}`);
@@ -93,7 +94,7 @@ class TransactionTable extends Component {
                             </thead>
                             {table}
                             <div id={classes.pages}>
-                                <Pagination totalRecords={this.state.totalRecords} pageLimit={25} pageNeighbours={1} onPageChanged={this.onPageChanged} />
+                                <Pagination totalRecords={this.state.totalRecords.page_count} pageLimit={25} pageNeighbours={1} onPageChanged={this.onPageChanged} />
                             </div>
                         </table>
                     : <Loading>Transactions</Loading>

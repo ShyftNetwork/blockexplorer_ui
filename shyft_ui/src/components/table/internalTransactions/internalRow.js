@@ -22,16 +22,20 @@ class InternalTransactionsTable extends Component {
         try {
             const response = await axios.get(`${API_URL}/get_internal_transactions_length/`);
             await this.setState({totalRecords: response.data});
-            try {
-                const response = await axios.get(`${API_URL}/get_internal_transactions/${currentPage}/${pageLimit}`);
-                if(response.data === "\n") {
-                    this.setState({emptyDataSet: true})
-                } else {
-                    this.setState({emptyDataSet: false})
+            console.log("records",this.state.totalRecords.page_count)
+            if(this.state.totalRecords.page_count !== 0) {
+                console.log("records2",this.state.totalRecords.page_count)
+                try {
+                    const response = await axios.get(`${API_URL}/get_internal_transactions/${currentPage}/${pageLimit}`);
+                    if (response.data === "\n") {
+                        this.setState({emptyDataSet: true})
+                    } else {
+                        this.setState({emptyDataSet: false})
+                    }
+                    await this.setState({data: response.data});
+                } catch (err) {
+                    console.log(err);
                 }
-                await this.setState({data: response.data});
-            } catch (err) {
-                console.log(err);
             }
         } catch (err) {
             console.log(err);
@@ -83,11 +87,11 @@ class InternalTransactionsTable extends Component {
                         </thead>
                         {table}
                         <div id={classes.pages}>
-                                    <Pagination totalRecords={this.state.totalRecords} pageLimit={25} pageNeighbours={1} onPageChanged={this.onPageChanged} />
+                            <Pagination totalRecords={this.state.totalRecords} pageLimit={25} pageNeighbours={1} onPageChanged={this.onPageChanged} />
                         </div>
                     </table>
-                    : <Loading>Internal Transactions</Loading>
-                } 
+                    : <Loading data={this.state.data.length}>Internal Transactions</Loading>
+                }
             </div>
         );
     }

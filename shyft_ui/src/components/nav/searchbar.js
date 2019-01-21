@@ -3,14 +3,12 @@ import PropTypes, { nominalTypeHack } from 'prop-types';
 import axios from 'axios';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
-import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
 import InputBase from '@material-ui/core/InputBase';
 import { fade } from '@material-ui/core/styles/colorManipulator';
 import { withStyles } from '@material-ui/core/styles';
-import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
-import App from "../../containers/App";
+
 import {API_URL} from "../../constants/apiURL";
 
 //class App extends Component
@@ -33,6 +31,7 @@ class SearchAppBar extends Component {
             // put the login here
             try {
                 const response = await axios.get(`${API_URL}/search/${this.state.value}`);
+                console.log("RESPONSE", response.data)
                 await this.setState({ data: response.data })
             }
             catch(error) {

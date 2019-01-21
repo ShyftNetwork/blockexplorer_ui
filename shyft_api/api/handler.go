@@ -22,7 +22,7 @@ import (
 func SGetAllTransactionsLength(w http.ResponseWriter, r *http.Request) {
 	dbase := db.ConnectShyftDatabase()
 
-	count := b.RecordCountQuery(dbase, db.GetBlockCount)
+	count := b.RecordCountQuery(dbase, db.GetTransactionCount)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
@@ -283,7 +283,7 @@ func GetRecentBlock(w http.ResponseWriter, r *http.Request) {
 }
 
 // SGetAllInternalTransactionsLength Count all rows in Blocks Table
-func SGetAllInternalTransactionsLength(w http.ResponseWriter, r *http.Request) {
+func GetAllInternalTransactionsLength(w http.ResponseWriter, r *http.Request) {
 	dbase := db.ConnectShyftDatabase()
 
 	count := b.RecordCountQuery(dbase, db.GetInternalTransactionLength)
@@ -340,15 +340,18 @@ func GetInternalTransactions(w http.ResponseWriter, r *http.Request) {
 
 // SGetAllInternalTransactionsLength Count all rows in Blocks Table
 func GetSearchQuery(w http.ResponseWriter, r *http.Request) {
-	//dbase := db.ConnectShyftDatabase()
+	dbase := db.ConnectShyftDatabase()
 	vars := mux.Vars(r)
 	query := vars["query"]
-	//count := b.RecordCountQuery(dbase, db.GetInternalTransactionLength)
+
+	response, err := tx.SearchQuery(dbase, db.SearchQuery, query)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	fmt.Println("worked", query)
-	fmt.Fprintf(w, "worked")
-	//logger.WriteLogger(w.Write(count))
+	logger.WriteLogger(w.Write(response))
 }
 
 // BroadcastTx broadcasts tx

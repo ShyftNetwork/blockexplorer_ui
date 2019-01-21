@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import ErrorMessage from '../table/internalTransactions/errorMessage'
 import { withStyles } from '@material-ui/core/styles';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { Typography } from '@material-ui/core';
@@ -19,10 +20,19 @@ const styles = theme => ({
 
 function CircularIndeterminate(props) {
   const { classes } = props;
+  console.log("changes?",props.data)
   return (
         <div className={classes.position}>
-            <CircularProgress className={classes.progress} size={120} thickness={5} />
-            <Typography>Loading {props.children}...</Typography>
+            {
+              props.data === 0 ?
+                  <ErrorMessage /> :
+                  <div>
+                    <CircularProgress className={classes.progress} size={120} thickness={5} />
+                    <Typography>Loading {props.children}...</Typography>
+                  </div>
+            }
+            {/*<CircularProgress className={classes.progress} size={120} thickness={5} />*/}
+            {/*<Typography>Loading {props.children}...</Typography>*/}
         </div>
   );
 }

@@ -125,3 +125,9 @@ func InternalTransactionArrayQuery(db *db.SPGDatabase, query string, currentPage
 	return txs, nil
 }
 
+func SearchQuery(db *db.SPGDatabase, query string, identifier string) ([]byte, error) {
+	row := db.Db.QueryRowx(query, identifier)
+	transaction := TransactionMarshalling(row)
+	return transaction, nil
+}
+

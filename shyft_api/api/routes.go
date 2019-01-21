@@ -121,8 +121,8 @@ var Endpoints = Routes{
 	Route{
 		"GetAllInternalTransactionsLength",
 		"GET",
-		"/api/get_all_internal_transactions_length",
-		SGetAllInternalTransactionsLength,
+		"/api/get_internal_transactions_length",
+		GetAllInternalTransactionsLength,
 	},
 	Route{
 		"BroadcastTx",

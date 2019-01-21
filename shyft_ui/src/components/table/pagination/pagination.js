@@ -37,7 +37,6 @@ class Pagination extends Component {
             : 0;
 
         this.totalPages = Math.ceil(this.totalRecords / this.pageLimit);
-
         this.state = { currentPage: 1 };
     }
 
@@ -147,7 +146,7 @@ class Pagination extends Component {
     };
 
     render() {
-        if (!this.totalRecords || this.totalPages === 1) return null;
+        if (!this.totalRecords) return null;
 
         const { currentPage } = this.state;
         const pages = this.fetchPageNumbers();
@@ -162,7 +161,7 @@ class Pagination extends Component {
 
                             if (page === LEFT_PAGE) return (
                                 <li key={index} className="page-item">
-                                    <a className="page-link" href="#" aria-label="Previous" onClick={this.handleMoveLeft}>
+                                    <a id={classes.background} className="page-link" href="#" aria-label="Previous" onClick={this.handleMoveLeft}>
                                         <span aria-hidden="true">&laquo;</span>
                                         <span className="sr-only">Previous</span>
                                     </a>
@@ -171,7 +170,7 @@ class Pagination extends Component {
 
                             if (page === RIGHT_PAGE) return (
                                 <li key={index} className="page-item">
-                                    <a className="page-link" href="#" aria-label="Next" onClick={this.handleMoveRight}>
+                                    <a id={classes.background} className="page-link" href="#" aria-label="Next" onClick={this.handleMoveRight}>
                                         <span aria-hidden="true">&raquo;</span>
                                         <span className="sr-only">Next</span>
                                     </a>
@@ -180,13 +179,13 @@ class Pagination extends Component {
 
                             if (page === first) return (
                                 <li key={index} className={`page-item${ currentPage === first ? ' active' : ''}`}>
-                                    <a className="page-link" href="#" onClick={ this.handleClick(first) }>First</a>
+                                    <a id={classes.background}  className="page-link" href="#" onClick={ this.handleClick(first) }>First</a>
                                 </li>
                             );
 
                             if (page === last) return (
                                 <li key={index} className={`page-item${ currentPage === last ? ' active' : ''}`}>
-                                    <a className="page-link" href="#" onClick={ this.handleClick(last) }>Last</a>
+                                    <a id={classes.background}  className="page-link" href="#" onClick={ this.handleClick(last) }>Last</a>
                                 </li>
                             );
 
