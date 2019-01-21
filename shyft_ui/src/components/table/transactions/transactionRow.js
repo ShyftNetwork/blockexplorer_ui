@@ -20,7 +20,6 @@ class TransactionTable extends Component {
         let currentPage = 1;
         try {
             const response = await axios.get(`${API_URL}/get_all_transactions_length`);
-            console.log(response.data)
             await this.setState({totalRecords: response.data});
             try {
                 const response = await axios.get(`${API_URL}/get_all_transactions/${currentPage}/${pageLimit}`);

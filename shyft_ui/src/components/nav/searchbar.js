@@ -27,11 +27,9 @@ class SearchAppBar extends Component {
 
     keyPress = async(e) =>{
         if(e.keyCode === 13){
-            console.log('value', e.target.value);
             // put the login here
             try {
                 const response = await axios.get(`${API_URL}/search/${this.state.value}`);
-                console.log("RESPONSE", response.data)
                 await this.setState({ data: response.data })
             }
             catch(error) {

@@ -20,7 +20,6 @@ const styles = theme => ({
 
 function CircularIndeterminate(props) {
   const { classes } = props;
-  console.log("changes?",props.data)
   return (
         <div className={classes.position}>
             {
@@ -31,8 +30,6 @@ function CircularIndeterminate(props) {
                     <Typography>Loading {props.children}...</Typography>
                   </div>
             }
-            {/*<CircularProgress className={classes.progress} size={120} thickness={5} />*/}
-            {/*<Typography>Loading {props.children}...</Typography>*/}
         </div>
   );
 }
