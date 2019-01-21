@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import axios from 'axios';
 import Nav from "../components/nav/nav";
-import { BrowserRouter, Route } from 'react-router-dom'
+import { BrowserRouter, Route  } from 'react-router-dom'
 import { API_URL } from "../constants/apiURL";
 import Modal from 'react-bootstrap/lib/Modal';
 import Button from 'react-bootstrap/lib/Button';
@@ -31,6 +31,8 @@ import BlocksMinedTable from "../components/table/blocks/blocksMined";
 import AccountsRow from '../components/table/accounts/accountRows';
 import DetailAccountsTable from "../components/table/accounts/detailAccountsRow";
 
+//**SEARCH QUERY**//
+import QueryResults from '../components/table/searchResults/results';
 
 class App extends Component {
   constructor(props) {
@@ -46,6 +48,7 @@ class App extends Component {
         reqAccount: '',
         overlayTriggered: false,
         overlayContent: "",
+        data: []
     };
   }
 
@@ -94,12 +97,14 @@ class App extends Component {
         }
     };
 
-    getInternalTransactions = async() => {
+    searchQueryHandler = async(query) => {
         let pageLimit= 25;
         let currentPage = 1;
         try {
-            const response = await axios.get(`${API_URL}/get_internal_transactions/${currentPage}/${pageLimit}`);
-            await this.setState({ internalTransactions: response.data,  overlayTriggered: false })
+            const response = await axios.get(`${API_URL}/search/${query}`);
+            await this.setState({data: response.data})
+            return response.data
+            //await this.setState({ data: response.data });
         }
         catch(error) {
             console.log(error)
@@ -107,10 +112,12 @@ class App extends Component {
     };
 
 
-    getAccounts = async() => {
+    getInternalTransactions = async() => {
+        let pageLimit= 25;
+        let currentPage = 1;
         try {
-            const response = await axios.get(`${API_URL}/get_all_accounts`);
-            await this.setState({ accounts: response.data,  overlayTriggered: false })
+            const response = await axios.get(`${API_URL}/get_internal_transactions/${currentPage}/${pageLimit}`);
+            await this.setState({ internalTransactions: response.data,  overlayTriggered: false })
         }
         catch(error) {
             console.log(error)
@@ -241,7 +248,7 @@ class App extends Component {
                 }
         
                 <div style={ this.state.overlayTriggered ? {backgroundColor:"#f7f8f9", paddingBottom:"5%", opacity:0.5, zIndex: -10000, height: '100%', width: '100%'}  : {backgroundColor:"#f7f8f9", paddingBottom:"5%", height: '100%', width: '100%' }  }>
-                    <Nav />
+                    <Nav searchQueryHandler={this.searchQueryHandler}/>
         
                     <Route path="/" exact render={({ match }) =>
                         <Home style={{width: '100%'}}/> 
@@ -329,6 +336,13 @@ class App extends Component {
                             addr={this.state.reqAccount}
                             data={this.state.accountDetailData}/>
                     </div>}
+                    />
+                    <Route path="/search/" exact render={({match}) =>
+                        <div>
+                            <QueryResults
+                                //transactionDetailHandler={this.detailTransactionHandler}
+                                data={this.state.data}/>
+                        </div>}
                     />
                 </div>
             </div>

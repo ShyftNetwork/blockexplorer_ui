@@ -1,6 +1,6 @@
 import React, { Component } from "react";
-import PropTypes, { nominalTypeHack } from 'prop-types';
-import axios from 'axios';
+import PropTypes from 'prop-types';
+import { Redirect } from 'react-router-dom'
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -9,14 +9,14 @@ import { fade } from '@material-ui/core/styles/colorManipulator';
 import { withStyles } from '@material-ui/core/styles';
 import SearchIcon from '@material-ui/icons/Search';
 
-import {API_URL} from "../../constants/apiURL";
-
 //class App extends Component
 class SearchAppBar extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            change: ""
+            change: "",
+            data: [],
+            results: false,
         };
     }
 
@@ -26,11 +26,11 @@ class SearchAppBar extends Component {
     };
 
     keyPress = async(e) =>{
+        //
         if(e.keyCode === 13){
-            // put the login here
             try {
-                const response = await axios.get(`${API_URL}/search/${this.state.value}`);
-                await this.setState({ data: response.data })
+                let res = await this.props.searchQueryHandler(this.state.value)
+                this.setState({data: [...this.state.data.push(res)], results: true})
             }
             catch(error) {
                 console.log(error)
@@ -64,6 +64,12 @@ class SearchAppBar extends Component {
                         </div>
                     </Toolbar>
                 </AppBar>
+                {this.state.results ?
+                <Redirect to={{
+                    pathname: '/search/',
+                    state: {data: this.state.data}
+                }}/> : null
+                }
             </div>
         );
     }

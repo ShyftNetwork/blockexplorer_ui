@@ -20,7 +20,7 @@ class navBar extends React.Component  {
     return (
       <div>
         <div className={classes.navHeader}>
-          <Search/>
+          <Search searchQueryHandler={this.props.searchQueryHandler}/>
           <div className={classes.buttonContainer}>
             <Link to="/blocks">  
               <button 
