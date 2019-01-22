@@ -22,9 +22,7 @@ class InternalTransactionsTable extends Component {
         try {
             const response = await axios.get(`${API_URL}/get_internal_transactions_length/`);
             await this.setState({totalRecords: response.data});
-            console.log("records",this.state.totalRecords.page_count)
             if(this.state.totalRecords.page_count !== 0) {
-                console.log("records2",this.state.totalRecords.page_count)
                 try {
                     const response = await axios.get(`${API_URL}/get_internal_transactions/${currentPage}/${pageLimit}`);
                     if (response.data === "\n") {

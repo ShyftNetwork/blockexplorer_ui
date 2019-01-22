@@ -2,9 +2,7 @@ import React, { Component } from 'react';
 import TransactionsTable from '../transactions/transactionTable'
 import Pagination from '../pagination/pagination';
 import classes from '../transactions/table.css';
-import axios from "axios";
 import Loading from '../../UI materials/loading'
-import {API_URL} from "../../../constants/apiURL";
 
 class TransactionTable extends Component {
     constructor(props) {
@@ -15,27 +13,12 @@ class TransactionTable extends Component {
         };
     }
 
-    onPageChanged = async(data) => {
-        const { currentPage, pageLimit } = data;
-
-        try {
-            const response = await axios.get(`${API_URL}/get_all_transactions/${currentPage}/${pageLimit}`);
-            if(response.data === "\n") {
-                this.setState({emptyDataSet: true})
-            } else {
-                this.setState({emptyDataSet: false})
-            }
-            await this.setState({data: response.data});
-        } catch (err) {
-            console.log(err);
-        }
-    };
-
     render() {
         let table;
         if(this.props.data) {
+            let t = [...this.state.data.push(this.props.data)];
             table = this.state.data.map((data, i) => {
-                const conversion = data.tx_amount / 10000000000000000000;
+                const conversion = data.tx_cost / 10000000000000000000;
                 return <TransactionsTable
                     key={`${data.tx_hash}${i}`}
                     age={data.tx_timestamp}
@@ -70,9 +53,9 @@ class TransactionTable extends Component {
                             </tr>
                             </thead>
                             {table}
-                            <div id={classes.pages}>
-                                <Pagination totalRecords={25} pageLimit={25} pageNeighbours={1} onPageChanged={this.onPageChanged} />
-                            </div>
+                            {/*<div id={classes.pages}>*/}
+                                {/*<Pagination totalRecords={25} pageLimit={25} pageNeighbours={1} onPageChanged={this.onPageChanged} />*/}
+                            {/*</div>*/}
                         </table>
                         : <Loading>Transactions</Loading>
                 }

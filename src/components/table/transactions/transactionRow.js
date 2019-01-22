@@ -57,7 +57,7 @@ class TransactionTable extends Component {
         let table;
         if(this.state.emptyDataSet === false && this.state.data.length > 0  ) {
             table = this.state.data.map((data, i) => {
-                const conversion = data.tx_amount / 10000000000000000000;
+                const conversion = data.tx_cost / 10000000000000000000;
                 return <TransactionsTable
                     key={`${data.tx_hash}${i}`}
                     age={data.tx_timestamp}
