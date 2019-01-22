@@ -47,11 +47,6 @@ coverage
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# Ignore shyftBlockExplorerApi vendored dependencies used for docker build
-shyft_api/vendor/**/.git
-shyft_api/vendor/*
-!shyft_api/vendor/*.json
-
 # Logs
 logs
 *.log
@@ -74,3 +69,5 @@ node_modules/
 # System Files
 .DS_Store
 Thumbs.db
+
+build/
