@@ -26,12 +26,11 @@ function CircularIndeterminate(props) {
               props.data === 0 ?
                   <ErrorMessage /> :
                   <div>
-                    <CircularProgress className={classes.progress} size={120} thickness={5} />
-                    <Typography>Loading {props.children}...</Typography>
+ 			<p><b>There are no Transactions to Display.</b></p> 
                   </div>
             }
         </div>
-  );
+);
 }
 
 CircularIndeterminate.propTypes = {
