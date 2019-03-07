@@ -66,10 +66,22 @@ onPageChanged = async(data) => {
                 .map(num => Number(num.balance) / 10000000000000000000)
                 .reduce((acc, cur) => acc + cur ,0);
             const percentage = ( (conversion / total) *100);
+            const Perc=percentage.toFixed(2);
+	    var PercUpdated='';
+            if(Perc.includes('NaN') === true){
+ 		//console.log(Perc);
+                //Perc.replace(/NaN/, '0');
+		PercUpdated = Perc.replace(/NaN/, '0') ;
+ 		//console.log(Perc.replace(/NaN/, '0'));
+ 		//console.log(PercUpdated);
+ 		//console.log('Found NaN After ');
+	    }else{
+ 		console.log('Did not Find NaN');
+	    }
             return <AccountsTable
                 key={`${data.address}${i}`}
                 Rank={startNum++}
-                Percentage={percentage.toFixed(2)}
+                Percentage={PercUpdated}
                 Addr={data.address}
                 Balance={conversion}
                 AccountNonce={data.nonce}
